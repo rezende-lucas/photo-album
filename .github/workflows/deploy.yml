@@ -3,23 +3,29 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # ou master, dependendo da sua branch principal
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Esta linha é importante para permitir a publicação
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Replace Environment Variables 🔄
+        
+      - name: Create config.js with environment variables
         run: |
-          # Substitui os placeholders pelos secrets
-          sed -i "s|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g" js/config.js
-          sed -i "s|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g" js/config.js
-
-      - name: Deploy 🚀
+          # Criar o diretório js se não existir
+          mkdir -p js
+          
+          # Criar o arquivo config.js com as variáveis do GitHub Secrets
+          echo "const SUPABASE_URL = '${{ secrets.SUPABASE_URL }}';" > js/config.js
+          echo "const SUPABASE_KEY = '${{ secrets.SUPABASE_KEY }}';" >> js/config.js
+          
+      - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: .  # Pasta que será publicada (raiz do projeto)
-          branch: gh-pages  # Branch para onde será publicado
+          folder: .  # O diretório que contém os arquivos a serem publicados
+          branch: gh-pages  # O branch para o qual os arquivos serão implantados
+          clean: true  # Limpa quaisquer arquivos existentes no branch gh-pages
