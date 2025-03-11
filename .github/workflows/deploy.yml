@@ -1,10 +1,8 @@
 name: Deploy to GitHub Pages
-
 on:
   push:
     branches:
       - main
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,6 +21,17 @@ jobs:
           echo "const SUPABASE_URL = '${{ secrets.SUPABASE_URL }}';" > js/config.js
           echo "const SUPABASE_KEY = '${{ secrets.SUPABASE_KEY }}';" >> js/config.js
           
+          # Remover js/config.js do .gitignore para permitir o deploy
+          sed -i '/js\/config.js/d' .gitignore
+          
+          # Verificar se a modificação foi bem-sucedida
+          echo "Conteúdo do .gitignore após modificação:"
+          cat .gitignore
+          
+          # Confirmar que o arquivo config.js existe
+          echo "Verificando se o arquivo config.js foi criado:"
+          ls -la js/
+      
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
