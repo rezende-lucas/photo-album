@@ -496,19 +496,20 @@
     
     // Salvar dados da pessoa do formulário
     function savePerson(event) {
-        event.preventDefault();
-        const elements = getDOMElements();
-        
-        const formData = new FormData(elements.personForm);
-        const personData = {
-            name: formData.get('name'),
-            filiation: formData.get('filiation'),
-            address: formData.get('address'),
-            history: formData.get('history'),
-            dob: formData.get('dob'),
-            phone: formData.get('phone'),
-            email: formData.get('email')
-        };
+    event.preventDefault();
+    const elements = getDOMElements();
+    
+    const formData = new FormData(elements.personForm);
+    const personData = {
+        name: formData.get('name'),
+        filiation: formData.get('filiation'),
+        address: formData.get('address'),
+        history: formData.get('history'),
+        // Aqui está a correção - converter string vazia para null
+        dob: formData.get('dob') || null,
+        phone: formData.get('phone'),
+        email: formData.get('email')
+    };
         
         const photoFile = elements.fileInput.files[0];
         
