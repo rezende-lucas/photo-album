@@ -1,10 +1,55 @@
-// Inicialização do Supabase
-// As credenciais são carregadas do arquivo config.js
-// No início do script.js
+// Declaração inicial de variáveis globais para garantir que existam antes do uso
+let people = [];
+let currentPersonId = null;
+let currentView = 'grid';
+let isDarkMode = false;
+let supabaseClient = null;
+
+// Função para criar um cliente Supabase fictício que utiliza localStorage
+function createMockSupabaseClient() {
+    return {
+        from: (table) => ({
+            select: () => Promise.resolve({ data: JSON.parse(localStorage.getItem(table) || '[]'), error: null }),
+            insert: (data) => {
+                const localData = JSON.parse(localStorage.getItem(table) || '[]');
+                if (!data.id) {
+                    data.id = Date.now().toString(36) + Math.random().toString(36).substring(2);
+                }
+                localData.push(data);
+                localStorage.setItem(table, JSON.stringify(localData));
+                return Promise.resolve({ data, error: null });
+            },
+            update: (data) => {
+                const localData = JSON.parse(localStorage.getItem(table) || '[]');
+                const index = localData.findIndex(item => item.id === data.id);
+                if (index !== -1) {
+                    localData[index] = { ...localData[index], ...data };
+                    localStorage.setItem(table, JSON.stringify(localData));
+                }
+                return Promise.resolve({ data, error: null });
+            },
+            delete: () => {
+                const localData = JSON.parse(localStorage.getItem(table) || '[]');
+                const filteredData = localData.filter(item => item.id !== currentPersonId);
+                localStorage.setItem(table, JSON.stringify(filteredData));
+                return Promise.resolve({ error: null });
+            }
+        })
+    };
+}
+
+// Configuração inicial - executa assim que o DOM estiver carregado
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar se a configuração do Supabase é válida
-    if (SUPABASE_URL === '__SUPABASE_URL__' || SUPABASE_KEY === '__SUPABASE_KEY__' || 
-        !SUPABASE_URL || !SUPABASE_KEY) {
+    const configInvalid = 
+        typeof SUPABASE_URL === 'undefined' || 
+        typeof SUPABASE_KEY === 'undefined' || 
+        SUPABASE_URL === '__SUPABASE_URL__' || 
+        SUPABASE_KEY === '__SUPABASE_KEY__' ||
+        SUPABASE_URL === '' ||
+        SUPABASE_KEY === '';
+    
+    if (configInvalid) {
         console.warn('⚠️ Configuração do Supabase inválida. Usando apenas armazenamento local.');
         
         // Crie um elemento visual de aviso na página
@@ -32,27 +77,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.body.appendChild(warningElement);
+        
+        // Criando um cliente fictício para evitar erros
+        supabaseClient = createMockSupabaseClient();
+    } else {
+        try {
+            // Inicialização do Supabase com verificação
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Cliente Supabase inicializado com sucesso");
+        } catch (error) {
+            console.error("Erro ao inicializar cliente Supabase:", error);
+            // Criando um cliente fictício para evitar erros
+            supabaseClient = createMockSupabaseClient();
+            
+            // Exibir aviso de erro
+            const errorElement = document.createElement('div');
+            errorElement.style.backgroundColor = '#f8d7da';
+            errorElement.style.color = '#721c24';
+            errorElement.style.padding = '10px';
+            errorElement.style.margin = '10px';
+            errorElement.style.borderRadius = '4px';
+            errorElement.style.position = 'fixed';
+            errorElement.style.top = '80px';
+            errorElement.style.right = '10px';
+            errorElement.style.zIndex = '9999';
+            errorElement.innerHTML = `
+                <strong>Erro:</strong> 
+                Falha ao conectar com o banco de dados. 
+                Usando armazenamento local temporário.
+                <button style="margin-left: 10px; padding: 2px 8px; cursor: pointer;">
+                    Fechar
+                </button>
+            `;
+            
+            errorElement.querySelector('button').addEventListener('click', () => {
+                errorElement.remove();
+            });
+            
+            document.body.appendChild(errorElement);
+        }
     }
     
+    // Recuperar preferência de tema e outros dados do localStorage
+    isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
+    // Inicializar aplicação
     init().catch(err => {
         console.error('Erro ao inicializar aplicação:', err);
-        // Fallback para localStorage em caso de falha
+        // Carregar dados do localStorage como fallback
         people = JSON.parse(localStorage.getItem('albumPeople')) || [];
         renderPeople();
         setupEventListeners();
     });
 });
 
-
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Global state
-let people = JSON.parse(localStorage.getItem('albumPeople')) || [];
-let currentPersonId = null;
-let currentView = 'grid';
-let isDarkMode = localStorage.getItem('darkMode') === 'true';
-
-// Função para carregar pessoas do Supabase
+// Função para carregar pessoas do Supabase ou localStorage
 async function loadPeopleFromDB() {
     try {
         const { data, error } = await supabaseClient
@@ -75,46 +154,19 @@ async function loadPeopleFromDB() {
     }
 }
 
-// DOM Elements
-const body = document.body;
-const sidebar = document.getElementById('sidebar');
-const menuToggle = document.getElementById('menu-toggle');
-const themeToggle = document.getElementById('theme-toggle');
-const photoGrid = document.getElementById('photo-grid');
-const photoList = document.getElementById('photo-list');
-const emptyState = document.getElementById('empty-state');
-const searchInput = document.getElementById('search-input');
-const gridViewBtn = document.getElementById('grid-view-btn');
-const listViewBtn = document.getElementById('list-view-btn');
-const sidebarBtns = document.querySelectorAll('.sidebar-btn');
-const addPersonBtn = document.getElementById('add-person-btn');
-const sidebarAddBtn = document.getElementById('sidebar-add-btn');
-const emptyAddBtn = document.getElementById('empty-add-btn');
-const personModal = document.getElementById('person-modal');
-const closePersonModal = document.getElementById('close-person-modal');
-const personDetails = document.getElementById('person-details');
-const personIdElement = document.getElementById('person-id');
-const formModal = document.getElementById('form-modal');
-const closeFormModal = document.getElementById('close-form-modal');
-const personForm = document.getElementById('person-form');
-const cancelForm = document.getElementById('cancel-form');
-const fileInput = document.getElementById('photo');
-const fileName = document.getElementById('file-name');
-const toastContainer = document.getElementById('toast-container');
-
 // Initialize the application
 async function init() {
     // Apply dark mode if saved
     if (isDarkMode) {
-        body.classList.add('light-mode');
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        document.body.classList.add('light-mode');
+        document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun"></i>';
     }
     
-    // Carregar dados do Supabase
+    // Carregar dados do Supabase ou localStorage
     try {
         people = await loadPeopleFromDB();
     } catch (error) {
-        console.error('Falha ao carregar dados do Supabase:', error);
+        console.error('Falha ao carregar dados:', error);
         // Fallback para localStorage
         people = JSON.parse(localStorage.getItem('albumPeople')) || [];
     }
@@ -123,20 +175,52 @@ async function init() {
     setupEventListeners();
 }
 
+// DOM Elements - Busca todos os elementos necessários
+function getDOMElements() {
+    return {
+        body: document.body,
+        sidebar: document.getElementById('sidebar'),
+        menuToggle: document.getElementById('menu-toggle'),
+        themeToggle: document.getElementById('theme-toggle'),
+        photoGrid: document.getElementById('photo-grid'),
+        photoList: document.getElementById('photo-list'),
+        emptyState: document.getElementById('empty-state'),
+        searchInput: document.getElementById('search-input'),
+        gridViewBtn: document.getElementById('grid-view-btn'),
+        listViewBtn: document.getElementById('list-view-btn'),
+        sidebarBtns: document.querySelectorAll('.sidebar-btn'),
+        addPersonBtn: document.getElementById('add-person-btn'),
+        sidebarAddBtn: document.getElementById('sidebar-add-btn'),
+        emptyAddBtn: document.getElementById('empty-add-btn'),
+        personModal: document.getElementById('person-modal'),
+        closePersonModal: document.getElementById('close-person-modal'),
+        personDetails: document.getElementById('person-details'),
+        personIdElement: document.getElementById('person-id'),
+        formModal: document.getElementById('form-modal'),
+        closeFormModal: document.getElementById('close-form-modal'),
+        personForm: document.getElementById('person-form'),
+        cancelForm: document.getElementById('cancel-form'),
+        fileInput: document.getElementById('photo'),
+        fileName: document.getElementById('file-name'),
+        toastContainer: document.getElementById('toast-container')
+    };
+}
+
 // Render people based on the current view
 function renderPeople(filteredPeople = null) {
+    const elements = getDOMElements();
     const peopleToRender = filteredPeople || people;
     
     // Show empty state if no people
     if (peopleToRender.length === 0) {
-        photoGrid.style.display = 'none';
-        photoList.style.display = 'none';
-        emptyState.style.display = 'flex';
+        elements.photoGrid.style.display = 'none';
+        elements.photoList.style.display = 'none';
+        elements.emptyState.style.display = 'flex';
         return;
     }
     
     // Hide empty state
-    emptyState.style.display = 'none';
+    elements.emptyState.style.display = 'none';
     
     // Render based on current view
     if (currentView === 'grid') {
@@ -154,10 +238,11 @@ function generateRegistrationId(personId) {
 
 // Render grid view
 function renderGridView(peopleArray) {
-    photoGrid.style.display = 'grid';
-    photoList.style.display = 'none';
+    const elements = getDOMElements();
+    elements.photoGrid.style.display = 'grid';
+    elements.photoList.style.display = 'none';
     
-    photoGrid.innerHTML = '';
+    elements.photoGrid.innerHTML = '';
     
     peopleArray.forEach((person, index) => {
         const card = document.createElement('div');
@@ -204,7 +289,7 @@ function renderGridView(peopleArray) {
             </div>
         `;
         
-        photoGrid.appendChild(card);
+        elements.photoGrid.appendChild(card);
     });
     
     // Add event listeners for card buttons
@@ -225,10 +310,11 @@ function renderGridView(peopleArray) {
 
 // Render list view
 function renderListView(peopleArray) {
-    photoGrid.style.display = 'none';
-    photoList.style.display = 'flex';
+    const elements = getDOMElements();
+    elements.photoGrid.style.display = 'none';
+    elements.photoList.style.display = 'flex';
     
-    photoList.innerHTML = '';
+    elements.photoList.innerHTML = '';
     
     peopleArray.forEach((person, index) => {
         const listItem = document.createElement('div');
@@ -262,7 +348,7 @@ function renderListView(peopleArray) {
             </div>
         `;
         
-        photoList.appendChild(listItem);
+        elements.photoList.appendChild(listItem);
     });
     
     // Add event listeners for list buttons
@@ -283,13 +369,14 @@ function renderListView(peopleArray) {
 
 // Open person details modal
 function openPersonDetails(id) {
+    const elements = getDOMElements();
     const person = people.find(p => p.id === id);
     
     if (!person) return;
     
-    personIdElement.textContent = `REG-ID: ${generateRegistrationId(person.id)}`;
+    elements.personIdElement.textContent = `REG-ID: ${generateRegistrationId(person.id)}`;
     
-    personDetails.innerHTML = `
+    elements.personDetails.innerHTML = `
         <div class="modal-img">
             <img src="${person.photo || '/api/placeholder/400/320'}" alt="${person.name}">
             <div class="modal-stamp">CATALOGADO</div>
@@ -362,17 +449,17 @@ function openPersonDetails(id) {
         </div>
     `;
     
-    personModal.classList.add('active');
+    elements.personModal.classList.add('active');
     document.body.style.overflow = 'hidden';
     
     // Add event listeners for edit and delete buttons
-    personDetails.querySelector('.edit-btn').addEventListener('click', function() {
+    elements.personDetails.querySelector('.edit-btn').addEventListener('click', function() {
         const id = this.dataset.id;
-        closePersonModal.click();
+        elements.closePersonModal.click();
         openEditForm(id);
     });
     
-    personDetails.querySelector('.delete-btn').addEventListener('click', function() {
+    elements.personDetails.querySelector('.delete-btn').addEventListener('click', function() {
         const id = this.dataset.id;
         deletePerson(id);
     });
@@ -380,16 +467,18 @@ function openPersonDetails(id) {
 
 // Open form to add new person
 function openAddForm() {
+    const elements = getDOMElements();
     document.getElementById('form-title').innerHTML = '<i class="fas fa-user-plus"></i> Adicionar Novo Registro';
-    personForm.reset();
-    fileName.textContent = '';
+    elements.personForm.reset();
+    elements.fileName.textContent = '';
     currentPersonId = null;
-    formModal.classList.add('active');
+    elements.formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 // Open form to edit existing person
 function openEditForm(id) {
+    const elements = getDOMElements();
     const person = people.find(p => p.id === id);
     
     if (!person) return;
@@ -404,18 +493,19 @@ function openEditForm(id) {
     document.getElementById('dob').value = person.dob || '';
     document.getElementById('phone').value = person.phone || '';
     document.getElementById('email').value = person.email || '';
-    fileName.textContent = person.photo ? 'Foto atual' : '';
+    elements.fileName.textContent = person.photo ? 'Foto atual' : '';
     
     currentPersonId = id;
-    formModal.classList.add('active');
+    elements.formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 // Save person data from form
 function savePerson(event) {
     event.preventDefault();
+    const elements = getDOMElements();
     
-    const formData = new FormData(personForm);
+    const formData = new FormData(elements.personForm);
     const personData = {
         name: formData.get('name'),
         filiation: formData.get('filiation'),
@@ -426,7 +516,7 @@ function savePerson(event) {
         email: formData.get('email')
     };
     
-    const photoFile = fileInput.files[0];
+    const photoFile = elements.fileInput.files[0];
     
     if (photoFile) {
         const reader = new FileReader();
@@ -450,8 +540,9 @@ function savePerson(event) {
     }
 }
 
-// Save person data to localStorage
+// Save person data to localStorage and/or Supabase
 async function savePersonToStorage(personData) {
+    const elements = getDOMElements();
     try {
         if (currentPersonId) {
             // Update existing person
@@ -489,7 +580,7 @@ async function savePersonToStorage(personData) {
         // Update localStorage as backup
         localStorage.setItem('albumPeople', JSON.stringify(people));
         
-        formModal.classList.remove('active');
+        elements.formModal.classList.remove('active');
         document.body.style.overflow = 'auto';
         renderPeople();
     } catch (error) {
@@ -509,7 +600,7 @@ async function savePersonToStorage(personData) {
         }
         
         localStorage.setItem('albumPeople', JSON.stringify(people));
-        formModal.classList.remove('active');
+        elements.formModal.classList.remove('active');
         document.body.style.overflow = 'auto';
         renderPeople();
     }
@@ -517,6 +608,7 @@ async function savePersonToStorage(personData) {
 
 // Delete person
 async function deletePerson(id) {
+    const elements = getDOMElements();
     if (confirm('ATENÇÃO: Você tem certeza que deseja excluir este registro permanentemente?')) {
         try {
             // Delete from Supabase
@@ -533,7 +625,7 @@ async function deletePerson(id) {
             // Update localStorage as backup
             localStorage.setItem('albumPeople', JSON.stringify(people));
             
-            personModal.classList.remove('active');
+            elements.personModal.classList.remove('active');
             document.body.style.overflow = 'auto';
             renderPeople();
             
@@ -545,7 +637,7 @@ async function deletePerson(id) {
             // Fallback para exclusão local
             people = people.filter(p => p.id !== id);
             localStorage.setItem('albumPeople', JSON.stringify(people));
-            personModal.classList.remove('active');
+            elements.personModal.classList.remove('active');
             document.body.style.overflow = 'auto';
             renderPeople();
         }
@@ -578,6 +670,7 @@ function searchPeople(query) {
 
 // Show toast notification
 function showToast(title, message, type = '') {
+    const elements = getDOMElements();
     const toastId = Date.now();
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -596,7 +689,7 @@ function showToast(title, message, type = '') {
         </button>
     `;
     
-    toastContainer.appendChild(toast);
+    elements.toastContainer.appendChild(toast);
     
     // Make the toast visible after a small delay
     setTimeout(() => {
@@ -630,11 +723,12 @@ function closeToast(id) {
 
 // Toggle dark mode
 function toggleDarkMode() {
-    body.classList.toggle('light-mode');
-    isDarkMode = body.classList.contains('light-mode');
+    const elements = getDOMElements();
+    elements.body.classList.toggle('light-mode');
+    isDarkMode = elements.body.classList.contains('light-mode');
     
     // Update button icon
-    themeToggle.innerHTML = isDarkMode ? 
+    elements.themeToggle.innerHTML = isDarkMode ? 
         '<i class="fas fa-sun"></i>' : 
         '<i class="fas fa-moon"></i>';
     
@@ -644,7 +738,8 @@ function toggleDarkMode() {
 
 // Toggle sidebar on mobile
 function toggleSidebar() {
-    sidebar.classList.toggle('active');
+    const elements = getDOMElements();
+    elements.sidebar.classList.toggle('active');
 }
 
 // Utility: Generate unique ID
@@ -674,31 +769,33 @@ function formatDate(dateString) {
 
 // Setup event listeners
 function setupEventListeners() {
+    const elements = getDOMElements();
+    
     // Theme toggle
-    themeToggle.addEventListener('click', toggleDarkMode);
+    elements.themeToggle.addEventListener('click', toggleDarkMode);
     
     // Menu toggle for mobile
-    menuToggle.addEventListener('click', toggleSidebar);
+    elements.menuToggle.addEventListener('click', toggleSidebar);
     
     // View toggle buttons
-    gridViewBtn.addEventListener('click', () => {
+    elements.gridViewBtn.addEventListener('click', () => {
         currentView = 'grid';
-        gridViewBtn.classList.add('active');
-        listViewBtn.classList.remove('active');
+        elements.gridViewBtn.classList.add('active');
+        elements.listViewBtn.classList.remove('active');
         updateSidebarActive('grid');
         renderPeople();
     });
     
-    listViewBtn.addEventListener('click', () => {
+    elements.listViewBtn.addEventListener('click', () => {
         currentView = 'list';
-        listViewBtn.classList.add('active');
-        gridViewBtn.classList.remove('active');
+        elements.listViewBtn.classList.add('active');
+        elements.gridViewBtn.classList.remove('active');
         updateSidebarActive('list');
         renderPeople();
     });
     
     // Sidebar buttons
-    sidebarBtns.forEach(btn => {
+    elements.sidebarBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const view = this.dataset.view;
             
@@ -709,11 +806,11 @@ function setupEventListeners() {
                 
                 // Update main buttons
                 if (view === 'grid') {
-                    gridViewBtn.classList.add('active');
-                    listViewBtn.classList.remove('active');
+                    elements.gridViewBtn.classList.add('active');
+                    elements.listViewBtn.classList.remove('active');
                 } else {
-                    listViewBtn.classList.add('active');
-                    gridViewBtn.classList.remove('active');
+                    elements.listViewBtn.classList.add('active');
+                    elements.gridViewBtn.classList.remove('active');
                 }
                 
                 renderPeople();
@@ -722,35 +819,36 @@ function setupEventListeners() {
     });
     
     // Add person buttons
-    addPersonBtn.addEventListener('click', openAddForm);
-    sidebarAddBtn.addEventListener('click', openAddForm);
-    emptyAddBtn.addEventListener('click', openAddForm);
+    elements.addPersonBtn.addEventListener('click', openAddForm);
+    elements.sidebarAddBtn.addEventListener('click', openAddForm);
+    // Add person buttons (continuação)
+    elements.emptyAddBtn.addEventListener('click', openAddForm);
     
     // Close modals
-    closePersonModal.addEventListener('click', () => {
-        personModal.classList.remove('active');
+    elements.closePersonModal.addEventListener('click', () => {
+        elements.personModal.classList.remove('active');
         document.body.style.overflow = 'auto';
     });
     
-    closeFormModal.addEventListener('click', () => {
-        formModal.classList.remove('active');
+    elements.closeFormModal.addEventListener('click', () => {
+        elements.formModal.classList.remove('active');
         document.body.style.overflow = 'auto';
     });
     
-    cancelForm.addEventListener('click', () => {
-        formModal.classList.remove('active');
+    elements.cancelForm.addEventListener('click', () => {
+        elements.formModal.classList.remove('active');
         document.body.style.overflow = 'auto';
     });
     
     // Person cards/list items click
-    photoGrid.addEventListener('click', (e) => {
+    elements.photoGrid.addEventListener('click', (e) => {
         const card = e.target.closest('.person-card');
         if (card && !e.target.closest('.card-btn')) {
             openPersonDetails(card.dataset.id);
         }
     });
     
-    photoList.addEventListener('click', (e) => {
+    elements.photoList.addEventListener('click', (e) => {
         const listItem = e.target.closest('.list-item');
         if (listItem && !e.target.closest('.list-btn')) {
             openPersonDetails(listItem.dataset.id);
@@ -758,34 +856,34 @@ function setupEventListeners() {
     });
     
     // Form submission
-    personForm.addEventListener('submit', savePerson);
+    elements.personForm.addEventListener('submit', savePerson);
     
     // File input change
-    fileInput.addEventListener('change', (e) => {
+    elements.fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
-            fileName.textContent = file.name;
+            elements.fileName.textContent = file.name;
         } else {
-            fileName.textContent = '';
+            elements.fileName.textContent = '';
         }
     });
     
     // Search input
-    searchInput.addEventListener('input', (e) => {
+    elements.searchInput.addEventListener('input', (e) => {
         searchPeople(e.target.value);
     });
     
     // Close modals when clicking outside
-    personModal.addEventListener('click', (e) => {
-        if (e.target === personModal) {
-            personModal.classList.remove('active');
+    elements.personModal.addEventListener('click', (e) => {
+        if (e.target === elements.personModal) {
+            elements.personModal.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
     });
     
-    formModal.addEventListener('click', (e) => {
-        if (e.target === formModal) {
-            formModal.classList.remove('active');
+    elements.formModal.addEventListener('click', (e) => {
+        if (e.target === elements.formModal) {
+            elements.formModal.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
     });
@@ -793,7 +891,8 @@ function setupEventListeners() {
 
 // Update active state in sidebar
 function updateSidebarActive(view) {
-    sidebarBtns.forEach(btn => {
+    const elements = getDOMElements();
+    elements.sidebarBtns.forEach(btn => {
         if (btn.dataset.view === view) {
             btn.classList.add('active');
         } else if (btn.dataset.view) {
@@ -801,15 +900,3 @@ function updateSidebarActive(view) {
         }
     });
 }
-
-// Start the application
-document.addEventListener('DOMContentLoaded', () => {
-    init().catch(err => {
-        console.error('Erro ao inicializar aplicação:', err);
-        
-        // Fallback para localStorage em caso de falha na inicialização
-        people = JSON.parse(localStorage.getItem('albumPeople')) || [];
-        renderPeople();
-        setupEventListeners();
-    });
-});
