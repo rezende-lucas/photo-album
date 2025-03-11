@@ -500,16 +500,20 @@
     const elements = getDOMElements();
     
     const formData = new FormData(elements.personForm);
+    
+    // Função auxiliar para converter strings vazias em null
+    const emptyToNull = (value) => value === "" ? null : value;
+    
     const personData = {
-        name: formData.get('name'),
-        filiation: formData.get('filiation'),
-        address: formData.get('address'),
-        history: formData.get('history'),
-        // Aqui está a correção - converter string vazia para null
-        dob: formData.get('dob') || null,
-        phone: formData.get('phone'),
-        email: formData.get('email')
+        name: formData.get('name'), // Nome geralmente é obrigatório
+        filiation: emptyToNull(formData.get('filiation')),
+        address: emptyToNull(formData.get('address')),
+        history: emptyToNull(formData.get('history')),
+        dob: emptyToNull(formData.get('dob')),
+        phone: emptyToNull(formData.get('phone')),
+        email: emptyToNull(formData.get('email'))
     };
+    
         
         const photoFile = elements.fileInput.files[0];
         
