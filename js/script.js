@@ -1,5 +1,10 @@
 // Inicialização do Supabase
 // As credenciais são carregadas do arquivo config.js
+// At the beginning of your script.js
+if (SUPABASE_URL === '__SUPABASE_URL__' || SUPABASE_KEY === '__SUPABASE_KEY__') {
+    console.error('Supabase configuration is missing. Please check your deployment setup.');
+    // Maybe display a visible error message on the page
+}
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Global state
