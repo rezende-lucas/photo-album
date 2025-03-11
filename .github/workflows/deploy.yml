@@ -1,0 +1,25 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # ou master, dependendo da sua branch principal
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Replace Environment Variables 🔄
+        run: |
+          # Substitui os placeholders pelos secrets
+          sed -i "s|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g" js/config.js
+          sed -i "s|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g" js/config.js
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: .  # Pasta que será publicada (raiz do projeto)
+          branch: gh-pages  # Branch para onde será publicado
