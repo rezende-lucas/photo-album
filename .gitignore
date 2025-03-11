@@ -1,0 +1,7 @@
+# Ignorar arquivo de configuração com credenciais
+js/config.js
+
+# Outros arquivos e pastas que devem ser ignorados
+node_modules/
+.DS_Store
+.env
