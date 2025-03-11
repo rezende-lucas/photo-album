@@ -1,22 +1,49 @@
 // Inicialização do Supabase
 // As credenciais são carregadas do arquivo config.js
-// Verificação de configuração válida
-if (SUPABASE_URL === '__SUPABASE_URL__' || SUPABASE_KEY === '__SUPABASE_KEY__' || 
-    !SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('Configuração do Supabase inválida ou incompleta.');
-    // Inicializa um cliente fictício ou usa apenas localStorage
-    const supabaseClient = {
-        from: () => ({
-            select: () => Promise.resolve({ data: [], error: null }),
-            insert: () => Promise.resolve({ data: null, error: null }),
-            update: () => Promise.resolve({ data: null, error: null }),
-            delete: () => Promise.resolve({ data: null, error: null })
-        })
-    };
-} else {
-    // Inicializa o cliente real apenas se tiver configuração válida
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-}
+// No início do script.js
+document.addEventListener('DOMContentLoaded', () => {
+    // Verificar se a configuração do Supabase é válida
+    if (SUPABASE_URL === '__SUPABASE_URL__' || SUPABASE_KEY === '__SUPABASE_KEY__' || 
+        !SUPABASE_URL || !SUPABASE_KEY) {
+        console.warn('⚠️ Configuração do Supabase inválida. Usando apenas armazenamento local.');
+        
+        // Crie um elemento visual de aviso na página
+        const warningElement = document.createElement('div');
+        warningElement.style.backgroundColor = '#f8d7da';
+        warningElement.style.color = '#721c24';
+        warningElement.style.padding = '10px';
+        warningElement.style.margin = '10px';
+        warningElement.style.borderRadius = '4px';
+        warningElement.style.position = 'fixed';
+        warningElement.style.top = '80px';
+        warningElement.style.right = '10px';
+        warningElement.style.zIndex = '9999';
+        warningElement.innerHTML = `
+            <strong>Aviso:</strong> 
+            Conexão com o banco de dados não configurada. 
+            Usando armazenamento local temporário.
+            <button style="margin-left: 10px; padding: 2px 8px; cursor: pointer;">
+                Fechar
+            </button>
+        `;
+        
+        warningElement.querySelector('button').addEventListener('click', () => {
+            warningElement.remove();
+        });
+        
+        document.body.appendChild(warningElement);
+    }
+    
+    init().catch(err => {
+        console.error('Erro ao inicializar aplicação:', err);
+        // Fallback para localStorage em caso de falha
+        people = JSON.parse(localStorage.getItem('albumPeople')) || [];
+        renderPeople();
+        setupEventListeners();
+    });
+});
+
+
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Global state
