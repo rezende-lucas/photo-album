@@ -33,12 +33,12 @@ export async function registerUser(email, password, userData = {}) {
     }
     
     try {
-        // Registrar usuário com email e senha
+        // Registrar usuário com login automático
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: userData // Dados adicionais do usuário (nome, etc.)
+                data: userData
             }
         });
         
