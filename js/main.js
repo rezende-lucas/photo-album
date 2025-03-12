@@ -4,7 +4,7 @@ import { initializeSupabaseClient, loadPeopleFromDB } from './modules/storage.js
 import { getDOMElements } from './modules/ui.js';
 import { setupEventListeners } from './modules/events.js';
 import { renderPeople } from './modules/render.js';
-import { requireAuth, getCurrentUser, logoutUser } from './modules/auth.js';
+import { requireAuth, getCurrentUser } from './modules/auth.js';
 import { showToast } from './components/toast.js';
 import { setupCameraButton } from './modules/people.js';
 
@@ -63,19 +63,14 @@ async function init() {
     // Configurar listeners de eventos
     setupEventListeners();
     
-    // Configurar listener de logout
-    if (elements.logoutBtn) {
-        elements.logoutBtn.addEventListener('click', async () => {
-            const { error } = await logoutUser();
-            if (error) {
-                showToast('Erro', 'Falha ao encerrar sessão', 'error');
-                return;
-            }
-            
-            window.location.href = 'login.html';
-        });
+    // Configurar botão de câmera
+    try {
+        setupCameraButton();
+        console.log('Configuração do botão de câmera concluída');
+    } catch (error) {
+        console.error('Erro ao configurar botão de câmera:', error);
+        showToast('Aviso', 'Funcionalidade de câmera indisponível neste dispositivo.', 'warning');
     }
-setupCameraButton();
 }
 
 // Inicializar quando o DOM estiver pronto
