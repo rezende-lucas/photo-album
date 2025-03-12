@@ -5,6 +5,7 @@ import { formatDate, emptyToNull, generateRegistrationId } from './utils.js';
 import { renderPeople } from './render.js';
 import { showToast } from '../components/toast.js';
 import { state } from '../main.js';
+import { getCameraManager } from './camera.js';
 
 /**
  * Abre modal de detalhes da pessoa
@@ -103,6 +104,10 @@ export function openAddForm() {
     elements.personForm.reset();
     elements.fileName.textContent = '';
     state.currentPersonId = null;
+    
+    // Limpar qualquer foto capturada previamente
+    window.capturedImage = null;
+    
     elements.formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -128,9 +133,42 @@ export function openEditForm(id) {
     document.getElementById('email').value = person.email || '';
     elements.fileName.textContent = person.photo ? 'Foto atual' : '';
     
+    // Limpar qualquer foto capturada previamente
+    window.capturedImage = null;
+    
     state.currentPersonId = id;
     elements.formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Configura o botão de câmera para captura de fotos
+ */
+export function setupCameraButton() {
+    const cameraBtn = document.getElementById('camera-btn');
+    
+    if (!cameraBtn) return;
+    
+    // Verificar se a API de câmera está disponível
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        cameraBtn.style.display = 'none';
+        console.warn('API de câmera não disponível neste navegador');
+        return;
+    }
+    
+    cameraBtn.addEventListener('click', () => {
+        const cameraManager = getCameraManager();
+        
+        // Abrir câmera com callback para processar a foto
+        cameraManager.openCamera((imageData) => {
+            // Atualizar visualização do formulário
+            const elements = getDOMElements();
+            elements.fileName.textContent = 'Foto capturada com a câmera';
+            
+            // Armazenar dados da imagem para uso posterior
+            window.capturedImage = imageData;
+        });
+    });
 }
 
 /**
@@ -151,28 +189,37 @@ export function savePerson(event) {
         phone: emptyToNull(formData.get('phone')),
         email: emptyToNull(formData.get('email'))
     };
-        
-    const photoFile = elements.fileInput.files[0];
     
-    if (photoFile) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            personData.photo = e.target.result;
-            savePersonToStorage(personData);
-        };
-        
-        reader.readAsDataURL(photoFile);
-    } else {
-        // Se nenhuma nova foto for selecionada no modo de edição, manter a foto existente
-        if (state.currentPersonId) {
-            const existingPerson = state.people.find(p => p.id === state.currentPersonId);
-            if (existingPerson && existingPerson.photo) {
-                personData.photo = existingPerson.photo;
-            }
-        }
-        
+    // Verificar se temos uma foto capturada pela câmera
+    if (window.capturedImage) {
+        // Usar a foto capturada pela câmera
+        personData.photo = window.capturedImage;
+        window.capturedImage = null; // Limpar a referência após o uso
         savePersonToStorage(personData);
+    } else {
+        // Processo original para upload de arquivo
+        const photoFile = elements.fileInput.files[0];
+        
+        if (photoFile) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                personData.photo = e.target.result;
+                savePersonToStorage(personData);
+            };
+            
+            reader.readAsDataURL(photoFile);
+        } else {
+            // Se nenhuma nova foto for selecionada no modo de edição, manter a foto existente
+            if (state.currentPersonId) {
+                const existingPerson = state.people.find(p => p.id === state.currentPersonId);
+                if (existingPerson && existingPerson.photo) {
+                    personData.photo = existingPerson.photo;
+                }
+            }
+            
+            savePersonToStorage(personData);
+        }
     }
 }
 
@@ -277,33 +324,40 @@ export async function deletePerson(id) {
             
             // Fallback para exclusão local
             state.people = state.people.filter(p => p.id !== id);
-localStorage.setItem('albumPeople', JSON.stringify(state.people));
-elements.personModal.classList.remove('active');
-document.body.style.overflow = 'auto';
-renderPeople();
+            localStorage.setItem('albumPeople', JSON.stringify(state.people));
+            elements.personModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            renderPeople();
+        }
+    }
 }
-}
-}
-/**
 
-Pesquisar pessoas
-*/
+/**
+ * Pesquisar pessoas
+ */
 export function searchPeople(query) {
-if (!query.trim()) {
-renderPeople();
-return;
+    if (!query.trim()) {
+        renderPeople();
+        return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    const filtered = state.people.filter(person => {
+        const regId = generateRegistrationId(person.id).toLowerCase();
+        return (
+            person.name.toLowerCase().includes(lowerQuery) ||
+            (person.filiation && person.filiation.toLowerCase().includes(lowerQuery)) ||
+            (person.address && person.address.toLowerCase().includes(lowerQuery)) ||
+            (person.history && person.history.toLowerCase().includes(lowerQuery)) ||
+            (person.email && person.email.toLowerCase().includes(lowerQuery)) ||
+            regId.includes(lowerQuery)
+        );
+    });
+    
+    renderPeople(filtered);
 }
-const lowerQuery = query.toLowerCase();
-const filtered = state.people.filter(person => {
-const regId = generateRegistrationId(person.id).toLowerCase();
-return (
-person.name.toLowerCase().includes(lowerQuery) ||
-(person.filiation && person.filiation.toLowerCase().includes(lowerQuery)) ||
-(person.address && person.address.toLowerCase().includes(lowerQuery)) ||
-(person.history && person.history.toLowerCase().includes(lowerQuery)) ||
-(person.email && person.email.toLowerCase().includes(lowerQuery)) ||
-regId.includes(lowerQuery)
-);
-});
-renderPeople(filtered);
+
+// Função auxiliar para gerar ID (caso Supabase falhe)
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
