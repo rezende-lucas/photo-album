@@ -7,8 +7,7 @@ import { renderPeople } from './modules/render.js';
 import { requireAuth, getCurrentUser } from './modules/auth.js';
 import { showToast } from './components/toast.js';
 import { setupCameraButton } from './modules/people.js';
-import { initPhotoGallery } from './photoManager.js';
-
+import { initPhotoGallery } from './modules/photoManager.js';
 // Estado global da aplicação
 export const state = {
     people: [],
