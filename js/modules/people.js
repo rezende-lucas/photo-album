@@ -276,4 +276,34 @@ export async function deletePerson(id) {
             showToast('Erro', 'Falha ao excluir os dados. Tentando exclusão local.', 'error');
             
             // Fallback para exclusão local
-            state.people = state.
+            state.people = state.people.filter(p => p.id !== id);
+localStorage.setItem('albumPeople', JSON.stringify(state.people));
+elements.personModal.classList.remove('active');
+document.body.style.overflow = 'auto';
+renderPeople();
+}
+}
+}
+/**
+
+Pesquisar pessoas
+*/
+export function searchPeople(query) {
+if (!query.trim()) {
+renderPeople();
+return;
+}
+const lowerQuery = query.toLowerCase();
+const filtered = state.people.filter(person => {
+const regId = generateRegistrationId(person.id).toLowerCase();
+return (
+person.name.toLowerCase().includes(lowerQuery) ||
+(person.filiation && person.filiation.toLowerCase().includes(lowerQuery)) ||
+(person.address && person.address.toLowerCase().includes(lowerQuery)) ||
+(person.history && person.history.toLowerCase().includes(lowerQuery)) ||
+(person.email && person.email.toLowerCase().includes(lowerQuery)) ||
+regId.includes(lowerQuery)
+);
+});
+renderPeople(filtered);
+}
