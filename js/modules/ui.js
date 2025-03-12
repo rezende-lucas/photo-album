@@ -1,6 +1,26 @@
 // ui.js - Manipulação da interface do usuário
 
 /**
+ * Verifica se a aplicação está rodando no GitHub Pages
+ * @returns {boolean} Verdadeiro se estiver no GitHub Pages
+ */
+function isGitHubPages() {
+    return window.location.hostname === 'rezende-lucas.github.io';
+}
+
+/**
+ * Retorna uma URL para imagem placeholder que funciona em qualquer ambiente
+ * @param {number} width - Largura da imagem
+ * @param {number} height - Altura da imagem
+ * @returns {string} URL da imagem placeholder
+ */
+function getPlaceholderImage(width = 400, height = 320) {
+    return isGitHubPages() 
+        ? `https://via.placeholder.com/${width}x${height}` 
+        : `/api/placeholder/${width}/${height}`;
+}
+
+/**
  * Obtém todos os elementos do DOM usados na aplicação
  */
 export function getDOMElements() {
@@ -62,11 +82,24 @@ export function displayWarning(title, message) {
         </button>
     `;
     
-    warningElement.querySelector('button').addEventListener('click', () => {
-        warningElement.remove();
-    });
+    const closeButton = warningElement.querySelector('button');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            warningElement.remove();
+        });
+    }
     
     document.body.appendChild(warningElement);
+}
+
+/**
+ * Resolve o caminho para uma URL baseado no ambiente (GitHub Pages ou local)
+ * @param {string} path - Caminho relativo 
+ * @returns {string} Caminho completo resolvido
+ */
+export function resolvePath(path) {
+    // Adicionar prefixo para GitHub Pages
+    return isGitHubPages() ? `/photo-album/${path}` : `./${path}`;
 }
 
 /**
@@ -74,6 +107,12 @@ export function displayWarning(title, message) {
  */
 export function toggleDarkMode() {
     const elements = getDOMElements();
+    
+    if (!elements.body || !elements.themeToggle) {
+        console.warn('Elementos necessários para alternar tema não encontrados');
+        return false;
+    }
+    
     elements.body.classList.toggle('light-mode');
     const isDarkMode = elements.body.classList.contains('light-mode');
     
@@ -83,7 +122,11 @@ export function toggleDarkMode() {
         '<i class="fas fa-moon"></i>';
     
     // Salvar preferência
-    localStorage.setItem('darkMode', isDarkMode);
+    try {
+        localStorage.setItem('darkMode', isDarkMode);
+    } catch (error) {
+        console.warn('Não foi possível salvar preferência de tema:', error);
+    }
     
     return isDarkMode;
 }
@@ -93,6 +136,12 @@ export function toggleDarkMode() {
  */
 export function toggleSidebar() {
     const elements = getDOMElements();
+    
+    if (!elements.sidebar) {
+        console.warn('Elemento sidebar não encontrado');
+        return;
+    }
+    
     elements.sidebar.classList.toggle('active');
 }
 
@@ -101,9 +150,13 @@ export function toggleSidebar() {
  */
 export function toggleUserDropdown() {
     const elements = getDOMElements();
-    if (elements.userDropdown) {
-        elements.userDropdown.classList.toggle('active');
+    
+    if (!elements.userDropdown) {
+        console.warn('Elemento userDropdown não encontrado');
+        return;
     }
+    
+    elements.userDropdown.classList.toggle('active');
 }
 
 /**
@@ -111,6 +164,12 @@ export function toggleUserDropdown() {
  */
 export function updateSidebarActive(view) {
     const elements = getDOMElements();
+    
+    if (!elements.sidebarBtns || !elements.sidebarBtns.length) {
+        console.warn('Botões da barra lateral não encontrados');
+        return;
+    }
+    
     elements.sidebarBtns.forEach(btn => {
         if (btn.dataset.view === view) {
             btn.classList.add('active');
@@ -128,26 +187,61 @@ export function initializeUserUI(user) {
     
     // Atualizar nome de exibição do usuário
     if (elements.userDisplayName && user) {
-        elements.userDisplayName.textContent = user.user_metadata?.name || user.email;
+        elements.userDisplayName.textContent = user.user_metadata?.name || user.email || 'Usuário';
     }
     
-    // Se houver um avatar de usuário, atualizar
-    if (elements.userAvatar && user && user.user_metadata?.avatar_url) {
-        elements.userAvatar.src = user.user_metadata.avatar_url;
-    } else if (elements.userAvatar) {
-        // Avatar padrão com inicial do nome
-        const initials = (user?.user_metadata?.name || user?.email || 'U').charAt(0).toUpperCase();
-        elements.userAvatar.style.display = 'none';
-        if (elements.userAvatar.parentElement) {
-            elements.userAvatar.parentElement.innerHTML += `<div class="user-initials">${initials}</div>`;
+    // Tratar avatar do usuário
+    if (elements.userAvatar) {
+        if (user && user.user_metadata?.avatar_url) {
+            // Se o usuário tem avatar, usar
+            elements.userAvatar.src = user.user_metadata.avatar_url;
+            elements.userAvatar.style.display = 'block';
+            
+            // Remover iniciais se existirem
+            const initialsEl = elements.userAvatar.parentElement?.querySelector('.user-initials');
+            if (initialsEl) {
+                initialsEl.remove();
+            }
+        } else {
+            // Sem avatar, usar placeholder ou iniciais
+            const placeholderUrl = getPlaceholderImage(40, 40);
+            
+            // Verificar se já existe um elemento de iniciais
+            const existingInitials = elements.userAvatar.parentElement?.querySelector('.user-initials');
+            
+            if (!existingInitials && elements.userAvatar.parentElement) {
+                // Avatar não disponível, esconder imagem e mostrar iniciais
+                elements.userAvatar.style.display = 'none';
+                
+                // Obter inicial do nome ou email
+                const initial = (user?.user_metadata?.name || user?.email || 'U').charAt(0).toUpperCase();
+                elements.userAvatar.parentElement.innerHTML += `<div class="user-initials">${initial}</div>`;
+            } else if (!existingInitials) {
+                // Se não podemos adicionar iniciais, mostrar placeholder
+                elements.userAvatar.src = placeholderUrl;
+                elements.userAvatar.style.display = 'block';
+            }
         }
     }
     
-    // Toggle do dropdown de usuário
+    // Toggle do dropdown de usuário - só adicionar listener se não existir
     if (elements.userDropdownToggle) {
-        elements.userDropdownToggle.addEventListener('click', toggleUserDropdown);
+        // Verificar se já tem listener adicionado
+        const hasClickListener = elements.userDropdownToggle._hasToggleListener;
         
-        // Fechar dropdown ao clicar fora
+        if (!hasClickListener) {
+            elements.userDropdownToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleUserDropdown();
+            });
+            
+            // Marcar que já adicionamos o listener
+            elements.userDropdownToggle._hasToggleListener = true;
+        }
+    }
+    
+    // Adicionar listener global para fechar dropdown ao clicar fora (apenas uma vez)
+    if (!window._hasDropdownClickListener && elements.userDropdown && elements.userDropdownToggle) {
         document.addEventListener('click', function(e) {
             if (elements.userDropdown && 
                 elements.userDropdownToggle && 
@@ -156,5 +250,8 @@ export function initializeUserUI(user) {
                 elements.userDropdown.classList.remove('active');
             }
         });
+        
+        // Marcar que já adicionamos o listener global
+        window._hasDropdownClickListener = true;
     }
 }
