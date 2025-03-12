@@ -217,17 +217,29 @@
                         </div>
                         <div>
                             <div class="form-group">
-    <label class="form-label">Fotografia</label>
-    <div class="form-file-group">
-        <input type="file" class="form-file-input" id="photo" name="photo" accept="image/*">
-        <div class="form-file-label">
-            <i class="fas fa-camera-retro file-icon"></i>
-            <span class="file-text">CLIQUE PARA ADICIONAR FOTO DE IDENTIFICAÇÃO</span>
-            <div class="selected-file" id="file-name"></div>
+    <label class="form-label">Fotografias</label>
+    
+    <!-- Photos preview area -->
+    <div class="photos-gallery" id="photos-gallery">
+        <!-- Placeholder when no photos -->
+        <div class="photo-placeholder" id="photo-placeholder">
+            <i class="fas fa-camera-retro"></i>
+            <span>CLIQUE PARA ADICIONAR FOTO DE IDENTIFICAÇÃO</span>
         </div>
+        
+        <!-- Photo previews will be added here dynamically -->
     </div>
-    <div class="camera-controls">
-        <button type="button" class="camera-btn" id="camera-btn">
+    
+    <!-- Control buttons -->
+    <div class="photo-controls">
+        <!-- File input for selecting photos from device -->
+        <label class="photo-btn">
+            <i class="fas fa-upload"></i> Selecionar foto
+            <input type="file" id="photo-file-input" accept="image/*" style="display:none;" multiple>
+        </label>
+        
+        <!-- Camera button -->
+        <button type="button" class="photo-btn" id="camera-btn">
             <i class="fas fa-camera"></i> Usar Câmera
         </button>
     </div>
