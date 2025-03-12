@@ -147,27 +147,43 @@ export function openEditForm(id) {
 export function setupCameraButton() {
     const cameraBtn = document.getElementById('camera-btn');
     
-    if (!cameraBtn) return;
-    
-    // Verificar se a API de câmera está disponível
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        cameraBtn.style.display = 'none';
-        console.warn('API de câmera não disponível neste navegador');
+    if (!cameraBtn) {
+        console.error('Botão de câmera não encontrado');
         return;
     }
     
-    cameraBtn.addEventListener('click', () => {
-        const cameraManager = getCameraManager();
-        
-        // Abrir câmera com callback para processar a foto
-        cameraManager.openCamera((imageData) => {
-            // Atualizar visualização do formulário
-            const elements = getDOMElements();
-            elements.fileName.textContent = 'Foto capturada com a câmera';
+    // Verificar se a API de câmera está disponível
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn('API de câmera não disponível neste navegador');
+        cameraBtn.style.display = 'none';
+        return;
+    }
+    
+    // Importação dinâmica do módulo de câmera para garantir que ele seja carregado corretamente
+    import('./camera.js').then(({ getCameraManager }) => {
+        cameraBtn.addEventListener('click', () => {
+            const cameraManager = getCameraManager();
             
-            // Armazenar dados da imagem para uso posterior
-            window.capturedImage = imageData;
+            // Abrir câmera com callback para processar a foto
+            cameraManager.openCamera((imageData) => {
+                // Atualizar visualização do formulário
+                const fileNameElement = document.getElementById('file-name');
+                if (fileNameElement) {
+                    fileNameElement.textContent = 'Foto capturada com a câmera';
+                }
+                
+                // Armazenar dados da imagem para uso posterior
+                window.capturedImage = imageData;
+                
+                // Log para debug
+                console.log('Foto capturada com sucesso');
+            });
         });
+        
+        console.log('Botão de câmera configurado com sucesso');
+    }).catch(error => {
+        console.error('Erro ao carregar módulo de câmera:', error);
+        cameraBtn.style.display = 'none';
     });
 }
 
