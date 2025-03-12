@@ -226,9 +226,11 @@
     
     // Gerar ID de registro
     function generateRegistrationId(personId) {
-        const idNum = personId.substring(0, 8).toUpperCase();
-        return `REG-${idNum}`;
-    }
+    // Para UUIDs, você pode querer extrair apenas a primeira parte ou usar um formato diferente
+    // UUID exemplo: 123e4567-e89b-12d3-a456-426614174000
+    const idPart = personId.split('-')[0].toUpperCase();
+    return `REG-${idPart}`;
+}
     
     // Renderizar visualização em grade
     function renderGridView(peopleArray) {
