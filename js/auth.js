@@ -119,6 +119,11 @@ function setupEventListeners() {
             return;
         }
         
+        if (password.length < 6) {
+            showError(registerError, 'A senha deve ter pelo menos 6 caracteres.');
+            return;
+        }
+        
         if (!acceptTerms) {
             showError(registerError, 'Você deve aceitar os termos de uso.');
             return;
@@ -132,11 +137,22 @@ function setupEventListeners() {
             return;
         }
         
-        // Mostrar mensagem de sucesso e redirecionar para login
-        showToast('Registro bem-sucedido', 'Sua conta foi criada. Você pode fazer login agora.', 'success');
-        
-        // Ativar tab de login
-        authTabs[0].click();
+        // MUDANÇA IMPORTANTE: Verificar se o usuário foi autenticado automaticamente
+        if (data && data.session) {
+            // Usuário já está autenticado, redirecionar para a página principal
+            showToast('Registro bem-sucedido', 'Redirecionando para o sistema...', 'success');
+            
+            // Pequeno delay para mostrar o toast antes de redirecionar
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        } else {
+            // Usuário registrado mas precisa fazer login
+            showToast('Registro bem-sucedido', 'Sua conta foi criada. Você pode fazer login agora.', 'success');
+            
+            // Ativar tab de login
+            authTabs[0].click();
+        }
     });
     
     // Password reset form
