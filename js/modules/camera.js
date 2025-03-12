@@ -1,6 +1,26 @@
 // camera.js - Funcionalidade de câmera para captura de fotos
 
 /**
+ * Verifica se a aplicação está rodando no GitHub Pages
+ * @returns {boolean} True se estiver no GitHub Pages
+ */
+function isGitHubPages() {
+    return window.location.hostname === 'rezende-lucas.github.io';
+}
+
+/**
+ * Retorna uma URL para placeholder que funciona em qualquer ambiente
+ * @param {number} width - Largura da imagem
+ * @param {number} height - Altura da imagem
+ * @returns {string} URL da imagem placeholder
+ */
+function getPlaceholderImage(width = 400, height = 320) {
+    return isGitHubPages() 
+        ? `https://via.placeholder.com/${width}x${height}` 
+        : `/api/placeholder/${width}/${height}`;
+}
+
+/**
  * Gerencia a funcionalidade de câmera para captura de fotos
  */
 export class CameraManager {
@@ -75,6 +95,12 @@ export class CameraManager {
     async openCamera(callback) {
         if (!this.cameraModal) {
             console.error('Modal da câmera não encontrado');
+            return;
+        }
+        
+        // Verificar se o callback é uma função válida
+        if (typeof callback !== 'function') {
+            console.error('Callback inválido fornecido para openCamera');
             return;
         }
         
@@ -167,78 +193,78 @@ export class CameraManager {
      * Captura uma foto do stream de vídeo
      */
     capturePhoto() {
-    if (!this.stream || !this.cameraCanvas || !this.cameraFeed) {
-        console.error('Stream de vídeo ou canvas não disponível');
-        return;
+        if (!this.stream || !this.cameraCanvas || !this.cameraFeed) {
+            console.error('Stream de vídeo ou canvas não disponível');
+            return;
+        }
+        
+        const context = this.cameraCanvas.getContext('2d');
+        const { videoWidth, videoHeight } = this.cameraFeed;
+        
+        // Verificar se o vídeo tem dimensões válidas
+        if (videoWidth === 0 || videoHeight === 0) {
+            console.error('Dimensões do vídeo inválidas');
+            return;
+        }
+        
+        // Definir dimensões do canvas para corresponder ao vídeo
+        this.cameraCanvas.width = videoWidth;
+        this.cameraCanvas.height = videoHeight;
+        
+        // Desenhar o frame atual do vídeo no canvas
+        context.drawImage(this.cameraFeed, 0, 0, videoWidth, videoHeight);
+        
+        // Mostrar preview substituindo o vídeo pelo canvas
+        this.cameraFeed.style.display = 'none';
+        this.cameraCanvas.style.display = 'block';
+        
+        // Atualizar a UI
+        this.photoTaken = true;
+        if (this.captureBtn) this.captureBtn.style.display = 'none';
+        if (this.retakeBtn) this.retakeBtn.style.display = 'flex';
+        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'flex';
+        
+        // Pausar o vídeo
+        this.cameraFeed.pause();
     }
-    
-    const context = this.cameraCanvas.getContext('2d');
-    const { videoWidth, videoHeight } = this.cameraFeed;
-    
-    // Verify if video has valid dimensions
-    if (videoWidth === 0 || videoHeight === 0) {
-        console.error('Dimensões do vídeo inválidas');
-        return;
-    }
-    
-    // Set canvas dimensions to match video
-    this.cameraCanvas.width = videoWidth;
-    this.cameraCanvas.height = videoHeight;
-    
-    // Draw current video frame to canvas
-    context.drawImage(this.cameraFeed, 0, 0, videoWidth, videoHeight);
-    
-    // Show preview by replacing video with canvas
-    this.cameraFeed.style.display = 'none';
-    this.cameraCanvas.style.display = 'block';
-    
-    // Update UI
-    this.photoTaken = true;
-    if (this.captureBtn) this.captureBtn.style.display = 'none';
-    if (this.retakeBtn) this.retakeBtn.style.display = 'flex';
-    if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'flex';
-    
-    // Pause video
-    this.cameraFeed.pause();
-}
     
     /**
      * Descartar a foto capturada e voltar a mostrar o feed da câmera
      */
     retakePhoto() {
-    if (!this.stream || !this.cameraCanvas) {
-        console.error('Stream de vídeo ou canvas não disponível');
-        return;
+        if (!this.stream || !this.cameraCanvas) {
+            console.error('Stream de vídeo ou canvas não disponível');
+            return;
+        }
+        
+        // Limpar o canvas
+        const context = this.cameraCanvas.getContext('2d');
+        context.clearRect(0, 0, this.cameraCanvas.width, this.cameraCanvas.height);
+        
+        // Mostrar o vídeo novamente
+        this.cameraFeed.style.display = 'block';
+        this.cameraCanvas.style.display = 'none';
+        
+        // Atualizar UI
+        this.photoTaken = false;
+        if (this.captureBtn) this.captureBtn.style.display = 'flex';
+        if (this.retakeBtn) this.retakeBtn.style.display = 'none';
+        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'none';
+        
+        // Reiniciar o vídeo
+        if (this.cameraFeed && this.cameraFeed.play) {
+            this.cameraFeed.play().catch(error => {
+                console.error('Erro ao reproduzir vídeo:', error);
+            });
+        }
     }
-    
-    // Clear canvas
-    const context = this.cameraCanvas.getContext('2d');
-    context.clearRect(0, 0, this.cameraCanvas.width, this.cameraCanvas.height);
-    
-    // Show video again
-    this.cameraFeed.style.display = 'block';
-    this.cameraCanvas.style.display = 'none';
-    
-    // Update UI
-    this.photoTaken = false;
-    if (this.captureBtn) this.captureBtn.style.display = 'flex';
-    if (this.retakeBtn) this.retakeBtn.style.display = 'none';
-    if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'none';
-    
-    // Restart video
-    if (this.cameraFeed && this.cameraFeed.play) {
-        this.cameraFeed.play().catch(error => {
-            console.error('Erro ao reproduzir vídeo:', error);
-        });
-    }
-}
     
     /**
      * Usa a foto capturada e fecha o modal
      */
     usePhoto() {
-        if (!this.photoTaken || !this.onPhotoCapture || !this.cameraCanvas) {
-            console.error('Não foi possível usar a foto: foto não capturada ou callback ausente');
+        if (!this.photoTaken || !this.cameraCanvas) {
+            console.error('Não foi possível usar a foto: foto não capturada ou canvas ausente');
             return;
         }
         
@@ -246,8 +272,13 @@ export class CameraManager {
             // Converter imagem do canvas para base64
             const imageData = this.cameraCanvas.toDataURL('image/jpeg');
             
-            // Chamar callback com a imagem
-            this.onPhotoCapture(imageData);
+            // Verificar se o callback existe e é uma função
+            if (typeof this.onPhotoCapture === 'function') {
+                // Chamar callback com a imagem
+                this.onPhotoCapture(imageData);
+            } else {
+                console.error('Callback para captura de foto não é uma função válida');
+            }
             
             // Fechar modal
             this.closeCamera();
@@ -279,15 +310,16 @@ export class CameraManager {
     }
 }
 
-// Instância do gerenciador de câmera
-let cameraManager = null;
+// Instância única do gerenciador de câmera
+let cameraManagerInstance = null;
 
 /**
  * Obtém a instância do gerenciador de câmera, criando uma se necessário
+ * @returns {CameraManager} Instância única do gerenciador de câmera
  */
 export function getCameraManager() {
-    if (!cameraManager) {
-        cameraManager = new CameraManager();
+    if (!cameraManagerInstance) {
+        cameraManagerInstance = new CameraManager();
     }
-    return cameraManager;
+    return cameraManagerInstance;
 }
