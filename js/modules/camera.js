@@ -167,63 +167,71 @@ export class CameraManager {
      * Captura uma foto do stream de vídeo
      */
     capturePhoto() {
-        if (!this.stream || !this.cameraCanvas || !this.cameraFeed) {
-            console.error('Stream de vídeo ou canvas não disponível');
-            return;
-        }
-        
-        const context = this.cameraCanvas.getContext('2d');
-        const { videoWidth, videoHeight } = this.cameraFeed;
-        
-        // Verificar se o vídeo tem dimensões válidas
-        if (videoWidth === 0 || videoHeight === 0) {
-            console.error('Dimensões do vídeo inválidas');
-            return;
-        }
-        
-        // Configurar canvas para as dimensões do vídeo
-        this.cameraCanvas.width = videoWidth;
-        this.cameraCanvas.height = videoHeight;
-        
-        // Desenhar o frame atual do vídeo no canvas
-        context.drawImage(this.cameraFeed, 0, 0, videoWidth, videoHeight);
-        
-        // Atualizar UI
-        this.photoTaken = true;
-        if (this.captureBtn) this.captureBtn.style.display = 'none';
-        if (this.retakeBtn) this.retakeBtn.style.display = 'flex';
-        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'flex';
-        
-        // Pausar vídeo e mostrar imagem capturada
-        this.cameraFeed.pause();
+    if (!this.stream || !this.cameraCanvas || !this.cameraFeed) {
+        console.error('Stream de vídeo ou canvas não disponível');
+        return;
     }
+    
+    const context = this.cameraCanvas.getContext('2d');
+    const { videoWidth, videoHeight } = this.cameraFeed;
+    
+    // Verify if video has valid dimensions
+    if (videoWidth === 0 || videoHeight === 0) {
+        console.error('Dimensões do vídeo inválidas');
+        return;
+    }
+    
+    // Set canvas dimensions to match video
+    this.cameraCanvas.width = videoWidth;
+    this.cameraCanvas.height = videoHeight;
+    
+    // Draw current video frame to canvas
+    context.drawImage(this.cameraFeed, 0, 0, videoWidth, videoHeight);
+    
+    // Show preview by replacing video with canvas
+    this.cameraFeed.style.display = 'none';
+    this.cameraCanvas.style.display = 'block';
+    
+    // Update UI
+    this.photoTaken = true;
+    if (this.captureBtn) this.captureBtn.style.display = 'none';
+    if (this.retakeBtn) this.retakeBtn.style.display = 'flex';
+    if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'flex';
+    
+    // Pause video
+    this.cameraFeed.pause();
+}
     
     /**
      * Descartar a foto capturada e voltar a mostrar o feed da câmera
      */
     retakePhoto() {
-        if (!this.stream || !this.cameraCanvas) {
-            console.error('Stream de vídeo ou canvas não disponível');
-            return;
-        }
-        
-        // Limpar canvas
-        const context = this.cameraCanvas.getContext('2d');
-        context.clearRect(0, 0, this.cameraCanvas.width, this.cameraCanvas.height);
-        
-        // Atualizar UI
-        this.photoTaken = false;
-        if (this.captureBtn) this.captureBtn.style.display = 'flex';
-        if (this.retakeBtn) this.retakeBtn.style.display = 'none';
-        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'none';
-        
-        // Reiniciar vídeo
-        if (this.cameraFeed && this.cameraFeed.play) {
-            this.cameraFeed.play().catch(error => {
-                console.error('Erro ao reproduzir vídeo:', error);
-            });
-        }
+    if (!this.stream || !this.cameraCanvas) {
+        console.error('Stream de vídeo ou canvas não disponível');
+        return;
     }
+    
+    // Clear canvas
+    const context = this.cameraCanvas.getContext('2d');
+    context.clearRect(0, 0, this.cameraCanvas.width, this.cameraCanvas.height);
+    
+    // Show video again
+    this.cameraFeed.style.display = 'block';
+    this.cameraCanvas.style.display = 'none';
+    
+    // Update UI
+    this.photoTaken = false;
+    if (this.captureBtn) this.captureBtn.style.display = 'flex';
+    if (this.retakeBtn) this.retakeBtn.style.display = 'none';
+    if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'none';
+    
+    // Restart video
+    if (this.cameraFeed && this.cameraFeed.play) {
+        this.cameraFeed.play().catch(error => {
+            console.error('Erro ao reproduzir vídeo:', error);
+        });
+    }
+}
     
     /**
      * Usa a foto capturada e fecha o modal
