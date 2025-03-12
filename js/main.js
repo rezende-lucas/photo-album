@@ -6,6 +6,7 @@ import { setupEventListeners } from './modules/events.js';
 import { renderPeople } from './modules/render.js';
 import { requireAuth, getCurrentUser, logoutUser } from './modules/auth.js';
 import { showToast } from './components/toast.js';
+import { setupCameraButton } from './modules/people.js';
 
 // Estado global da aplicação
 export const state = {
@@ -74,6 +75,7 @@ async function init() {
             window.location.href = 'login.html';
         });
     }
+setupCameraButton();
 }
 
 // Inicializar quando o DOM estiver pronto
