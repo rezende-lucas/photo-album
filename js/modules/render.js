@@ -33,7 +33,7 @@ export function renderPeople(filteredPeople = null) {
 /**
  * Renderiza visualização em grade
  */
-function renderGridView(peopleArray) {
+export function renderGridView(peopleArray) {
     const elements = getDOMElements();
     elements.photoGrid.style.display = 'grid';
     elements.photoList.style.display = 'none';
@@ -41,12 +41,23 @@ function renderGridView(peopleArray) {
     elements.photoGrid.innerHTML = '';
     
     peopleArray.forEach((person, index) => {
+        // Get the first photo or use placeholder
+        const mainPhoto = person.photos && person.photos.length > 0 
+            ? person.photos[0].data 
+            : (person.photo || '/api/placeholder/400/320');
+        
+        // Calculate additional photos indicator
+        const additionalPhotos = (person.photos?.length || 0) - 1;
+        const photoIndicator = additionalPhotos > 0 
+            ? `<div class="photo-counter">+${additionalPhotos}</div>` 
+            : '';
+            
         const card = document.createElement('div');
         card.className = 'person-card fade-in';
         card.dataset.id = person.id;
         card.style.animationDelay = `${index * 0.05}s`;
         
-        // Gerar tipo de tag aleatório para visualização
+        // Generate random tag type for display
         const tagTypes = ['', 'danger', 'warning', 'success'];
         const tagType = tagTypes[Math.floor(Math.random() * tagTypes.length)];
         const tagText = tagType === 'danger' ? 'ATENÇÃO' : 
@@ -60,7 +71,8 @@ function renderGridView(peopleArray) {
             </div>
             ${tagText ? `<div class="card-tag ${tagType}">${tagText}</div>` : ''}
             <div class="card-img">
-                <img src="${person.photo || '/api/placeholder/400/320'}" alt="${person.name}">
+                <img src="${mainPhoto}" alt="${person.name}">
+                ${photoIndicator}
             </div>
             <div class="card-content">
                 <h3 class="person-name">
@@ -92,7 +104,7 @@ function renderGridView(peopleArray) {
 /**
  * Renderiza visualização em lista
  */
-function renderListView(peopleArray) {
+export function renderListView(peopleArray) {
     const elements = getDOMElements();
     elements.photoGrid.style.display = 'none';
     elements.photoList.style.display = 'flex';
@@ -100,6 +112,17 @@ function renderListView(peopleArray) {
     elements.photoList.innerHTML = '';
     
     peopleArray.forEach((person, index) => {
+        // Get the first photo or use placeholder
+        const mainPhoto = person.photos && person.photos.length > 0 
+            ? person.photos[0].data 
+            : (person.photo || '/api/placeholder/400/320');
+        
+        // Calculate additional photos indicator
+        const additionalPhotos = (person.photos?.length || 0) - 1;
+        const photoIndicator = additionalPhotos > 0 
+            ? `<div class="photo-counter">+${additionalPhotos}</div>` 
+            : '';
+            
         const listItem = document.createElement('div');
         listItem.className = 'list-item fade-in';
         listItem.dataset.id = person.id;
@@ -107,7 +130,8 @@ function renderListView(peopleArray) {
         
         listItem.innerHTML = `
             <div class="list-img">
-                <img src="${person.photo || '/api/placeholder/400/320'}" alt="${person.name}">
+                <img src="${mainPhoto}" alt="${person.name}">
+                ${photoIndicator}
             </div>
             <div class="list-content">
                 <div class="list-id">${generateRegistrationId(person.id)}</div>
