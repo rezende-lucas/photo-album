@@ -6,6 +6,38 @@ import { showToast } from '../components/toast.js';
 let currentPhotos = [];
 
 /**
+ * Checks if the app is running on GitHub Pages
+ * @returns {boolean} True if running on GitHub Pages
+ */
+function isGitHubPages() {
+    return window.location.hostname === 'rezende-lucas.github.io';
+}
+
+/**
+ * Resolves the correct module path based on the current environment
+ * @param {string} modulePath - The relative module path
+ * @returns {string} The correctly resolved path
+ */
+function resolveModulePath(modulePath) {
+    if (isGitHubPages()) {
+        return `/photo-album/js/modules/${modulePath}`;
+    }
+    return `./${modulePath}`;
+}
+
+/**
+ * Gets placeholder image URL that works in any environment
+ * @param {number} width - Image width
+ * @param {number} height - Image height
+ * @returns {string} URL for the placeholder image
+ */
+function getPlaceholderImage(width = 400, height = 320) {
+    return isGitHubPages() 
+        ? `https://via.placeholder.com/${width}x${height}` 
+        : `/api/placeholder/${width}/${height}`;
+}
+
+/**
  * Initialize the photo gallery component
  */
 export function initPhotoGallery() {
@@ -21,21 +53,26 @@ export function initPhotoGallery() {
     
     // Set up camera button
     if (cameraBtn) {
-        // Import camera module dynamically
-        import('./camera.js').then(({ getCameraManager }) => {
-            cameraBtn.addEventListener('click', () => {
-                const cameraManager = getCameraManager();
-                
-                // Open camera with callback to process the photo
-                cameraManager.openCamera((imageData) => {
-                    // Add the captured photo to our collection
-                    addPhotoToGallery(imageData);
+        // Import camera module dynamically with the correct path
+        const cameraModulePath = resolveModulePath('camera.js');
+        
+        import(cameraModulePath)
+            .then(({ getCameraManager }) => {
+                cameraBtn.addEventListener('click', () => {
+                    const cameraManager = getCameraManager();
+                    
+                    // Open camera with callback to process the photo
+                    cameraManager.openCamera((imageData) => {
+                        // Add the captured photo to our collection
+                        addPhotoToGallery(imageData);
+                    });
                 });
+            })
+            .catch(error => {
+                console.error('Error loading camera module:', error);
+                cameraBtn.style.display = 'none';
+                showToast('Aviso', 'Funcionalidade de câmera indisponível neste dispositivo.', 'warning');
             });
-        }).catch(error => {
-            console.error('Error loading camera module:', error);
-            cameraBtn.style.display = 'none';
-        });
     }
 }
 
