@@ -5,6 +5,26 @@ import { formatAddress, generateRegistrationId } from './utils.js';
 import { state } from '../main.js';
 
 /**
+ * Verifica se a aplicação está sendo executada no GitHub Pages
+ * @returns {boolean} Verdadeiro se estiver no GitHub Pages
+ */
+function isGitHubPages() {
+    return window.location.hostname === 'rezende-lucas.github.io';
+}
+
+/**
+ * Retorna URL da imagem placeholder compatível com o ambiente atual
+ * @param {number} width - Largura da imagem
+ * @param {number} height - Altura da imagem
+ * @returns {string} URL da imagem
+ */
+function getPlaceholderImage(width = 400, height = 320) {
+    return isGitHubPages() 
+        ? `https://via.placeholder.com/${width}x${height}` 
+        : `/api/placeholder/${width}/${height}`;
+}
+
+/**
  * Renderiza pessoas na visualização atual
  */
 export function renderPeople(filteredPeople = null) {
@@ -42,9 +62,10 @@ export function renderGridView(peopleArray) {
     
     peopleArray.forEach((person, index) => {
         // Get the first photo or use placeholder
+        // Corrigido para usar função getPlaceholderImage para compatibilidade com GitHub Pages
         const mainPhoto = person.photos && person.photos.length > 0 
             ? person.photos[0].data 
-            : (person.photo || '/api/placeholder/400/320');
+            : (person.photo || getPlaceholderImage(400, 320));
         
         // Calculate additional photos indicator
         const additionalPhotos = (person.photos?.length || 0) - 1;
@@ -113,9 +134,10 @@ export function renderListView(peopleArray) {
     
     peopleArray.forEach((person, index) => {
         // Get the first photo or use placeholder
+        // Corrigido para usar função getPlaceholderImage para compatibilidade com GitHub Pages
         const mainPhoto = person.photos && person.photos.length > 0 
             ? person.photos[0].data 
-            : (person.photo || '/api/placeholder/400/320');
+            : (person.photo || getPlaceholderImage(400, 320));
         
         // Calculate additional photos indicator
         const additionalPhotos = (person.photos?.length || 0) - 1;
