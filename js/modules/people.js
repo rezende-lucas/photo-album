@@ -6,6 +6,7 @@ import { renderPeople } from './render.js';
 import { showToast } from '../components/toast.js';
 import { state } from '../main.js';
 import { getCameraManager } from './camera.js';
+import { setExistingPhotos, getCurrentPhotos } from './photoManager.js';
 
 /**
  * Abre modal de detalhes da pessoa
@@ -18,11 +19,22 @@ export function openPersonDetails(id) {
     
     elements.personIdElement.textContent = `REG-ID: ${generateRegistrationId(person.id)}`;
     
-    elements.personDetails.innerHTML = `
-        <div class="modal-img">
+    // Create photo gallery HTML based on available photos
+    const photoGalleryHTML = person.photos && person.photos.length > 0
+        ? `<div class="modal-photos-gallery">
+            ${person.photos.map(photo => `
+                <div class="modal-photo-item">
+                    <img src="${photo.data}" alt="${person.name}">
+                </div>
+            `).join('')}
+          </div>`
+        : `<div class="modal-img">
             <img src="${person.photo || '/api/placeholder/400/320'}" alt="${person.name}">
             <div class="modal-stamp">CATALOGADO</div>
-        </div>
+          </div>`;
+    
+    elements.personDetails.innerHTML = `
+        ${photoGalleryHTML}
         <div class="modal-details">
             <div class="detail-row">
                 <div class="detail-group">
@@ -105,8 +117,8 @@ export function openAddForm() {
     elements.fileName.textContent = '';
     state.currentPersonId = null;
     
-    // Limpar qualquer foto capturada previamente
-    window.capturedImage = null;
+    // Reset the photo gallery
+    setExistingPhotos([]);
     
     elements.formModal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -123,7 +135,7 @@ export function openEditForm(id) {
     
     document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editar Registro';
     
-    // Preencher formulário com dados da pessoa
+    // Fill form with person data
     document.getElementById('name').value = person.name || '';
     document.getElementById('filiation').value = person.filiation || '';
     document.getElementById('address').value = person.address || '';
@@ -131,10 +143,20 @@ export function openEditForm(id) {
     document.getElementById('dob').value = person.dob || '';
     document.getElementById('phone').value = person.phone || '';
     document.getElementById('email').value = person.email || '';
-    elements.fileName.textContent = person.photo ? 'Foto atual' : '';
     
-    // Limpar qualquer foto capturada previamente
-    window.capturedImage = null;
+    // Set up photo gallery with existing photos
+    if (person.photos && person.photos.length > 0) {
+        setExistingPhotos(person.photos);
+    } else if (person.photo) {
+        // Handle legacy data with single photo
+        setExistingPhotos([{
+            id: 'legacy',
+            data: person.photo,
+            dateAdded: new Date().toISOString()
+        }]);
+    } else {
+        setExistingPhotos([]);
+    }
     
     state.currentPersonId = id;
     elements.formModal.classList.add('active');
@@ -206,50 +228,17 @@ export function savePerson(event) {
         history: emptyToNull(formData.get('history')),
         dob: emptyToNull(formData.get('dob')),
         phone: emptyToNull(formData.get('phone')),
-        email: emptyToNull(formData.get('email'))
+        email: emptyToNull(formData.get('email')),
+        // Use the new photos array
+        photos: getCurrentPhotos()
     };
     
-    // Verificar se temos uma foto capturada pela câmera
-    if (window.capturedImage) {
-        console.log('Usando foto capturada pela câmera');
-        // Usar a foto capturada pela câmera
-        personData.photo = window.capturedImage;
-        window.capturedImage = null; // Limpar a referência após o uso
-        savePersonToStorage(personData);
-    } else {
-        console.log('Verificando upload de arquivo');
-        // Processo original para upload de arquivo
-        const photoFile = elements.fileInput.files[0];
-        
-        if (photoFile) {
-            console.log('Processando arquivo de foto selecionado');
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                personData.photo = e.target.result;
-                savePersonToStorage(personData);
-            };
-            
-            reader.onerror = function(e) {
-                console.error('Erro ao ler arquivo:', e);
-                showToast('Erro', 'Não foi possível processar a imagem selecionada.', 'error');
-            };
-            
-            reader.readAsDataURL(photoFile);
-        } else {
-            console.log('Nenhum arquivo selecionado, verificando imagem existente');
-            // Se nenhuma nova foto for selecionada no modo de edição, manter a foto existente
-            if (state.currentPersonId) {
-                const existingPerson = state.people.find(p => p.id === state.currentPersonId);
-                if (existingPerson && existingPerson.photo) {
-                    console.log('Mantendo foto existente');
-                    personData.photo = existingPerson.photo;
-                }
-            }
-            
-            savePersonToStorage(personData);
-        }
+    // For backward compatibility, set the first photo as the main photo
+    if (personData.photos && personData.photos.length > 0) {
+        personData.photo = personData.photos[0].data;
     }
+    
+    savePersonToStorage(personData);
 }
 
 /**
