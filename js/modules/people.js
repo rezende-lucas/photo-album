@@ -190,6 +190,9 @@ export function setupCameraButton() {
 /**
  * Salvar dados da pessoa do formulário
  */
+/**
+ * Salvar dados da pessoa do formulário
+ */
 export function savePerson(event) {
     event.preventDefault();
     const elements = getDOMElements();
@@ -208,15 +211,18 @@ export function savePerson(event) {
     
     // Verificar se temos uma foto capturada pela câmera
     if (window.capturedImage) {
+        console.log('Usando foto capturada pela câmera');
         // Usar a foto capturada pela câmera
         personData.photo = window.capturedImage;
         window.capturedImage = null; // Limpar a referência após o uso
         savePersonToStorage(personData);
     } else {
+        console.log('Verificando upload de arquivo');
         // Processo original para upload de arquivo
         const photoFile = elements.fileInput.files[0];
         
         if (photoFile) {
+            console.log('Processando arquivo de foto selecionado');
             const reader = new FileReader();
             
             reader.onload = function(e) {
@@ -224,12 +230,19 @@ export function savePerson(event) {
                 savePersonToStorage(personData);
             };
             
+            reader.onerror = function(e) {
+                console.error('Erro ao ler arquivo:', e);
+                showToast('Erro', 'Não foi possível processar a imagem selecionada.', 'error');
+            };
+            
             reader.readAsDataURL(photoFile);
         } else {
+            console.log('Nenhum arquivo selecionado, verificando imagem existente');
             // Se nenhuma nova foto for selecionada no modo de edição, manter a foto existente
             if (state.currentPersonId) {
                 const existingPerson = state.people.find(p => p.id === state.currentPersonId);
                 if (existingPerson && existingPerson.photo) {
+                    console.log('Mantendo foto existente');
                     personData.photo = existingPerson.photo;
                 }
             }
