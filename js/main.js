@@ -1,15 +1,3 @@
-// Configurar caminho base para importações dinâmicas
-const baseUrl = location.hostname === 'rezende-lucas.github.io' 
-    ? '/photo-album/js/modules/' 
-    : './modules/';
-
-// Função para resolver caminhos considerando o ambiente
-function resolvePath(module) {
-    return location.hostname === 'rezende-lucas.github.io'
-        ? `/photo-album/js/modules/${module}`
-        : `./modules/${module}`;
-}
-
 // main.js - Ponto de entrada da aplicação
 
 import { initializeSupabaseClient, loadPeopleFromDB } from './modules/storage.js';
@@ -19,7 +7,18 @@ import { renderPeople } from './modules/render.js';
 import { requireAuth, getCurrentUser } from './modules/auth.js';
 import { showToast } from './components/toast.js';
 import { setupCameraButton } from './modules/people.js';
-import { initPhotoGallery } from './modules/photoManager.js';
+
+// Utilitário para determinar caminhos corretos baseado no ambiente (GitHub Pages ou local)
+const isGitHubPages = window.location.hostname === 'rezende-lucas.github.io';
+const BASE_PATH = isGitHubPages ? '/photo-album' : '';
+
+// Função utilitária para resolver caminhos de imagens placeholder
+export function getPlaceholderImage(width, height) {
+    return isGitHubPages 
+        ? `https://via.placeholder.com/${width}x${height}` 
+        : `/api/placeholder/${width}/${height}`;
+}
+
 // Estado global da aplicação
 export const state = {
     people: [],
@@ -27,7 +26,8 @@ export const state = {
     currentView: 'grid',
     isDarkMode: false,
     supabaseClient: null,
-    currentUser: null
+    currentUser: null,
+    basePath: BASE_PATH
 };
 
 // Função para atualizar o estado
@@ -74,8 +74,17 @@ async function init() {
     
     // Configurar listeners de eventos
     setupEventListeners();
- // Initialize photo gallery
-    initPhotoGallery();
+    
+    // Importar e inicializar a galeria de fotos dinamicamente
+    // Usando importação dinâmica com caminho correto para resolver o erro 404
+    try {
+        const photoManagerModule = await import('./modules/photoManager.js');
+        photoManagerModule.initPhotoGallery();
+        console.log('Galeria de fotos inicializada com sucesso');
+    } catch (error) {
+        console.error('Erro ao carregar módulo de gerenciamento de fotos:', error);
+        showToast('Aviso', 'Funcionalidade de galeria de fotos indisponível.', 'warning');
+    }
     
     // Configurar botão de câmera
     try {
