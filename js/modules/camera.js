@@ -29,6 +29,12 @@ export class CameraManager {
      * Configura os event listeners para os controles da câmera
      */
     setupEventListeners() {
+        if (!this.cameraModal || !this.closeCameraModal || !this.captureBtn || 
+            !this.retakeBtn || !this.usePhotoBtn || !this.switchCameraBtn) {
+            console.error('Elementos da câmera não encontrados');
+            return;
+        }
+        
         // Fechar modal
         this.closeCameraModal.addEventListener('click', () => {
             this.closeCamera();
@@ -67,13 +73,18 @@ export class CameraManager {
      * @param {Function} callback - Função a ser chamada quando a foto for selecionada
      */
     async openCamera(callback) {
+        if (!this.cameraModal) {
+            console.error('Modal da câmera não encontrado');
+            return;
+        }
+        
         this.onPhotoCapture = callback;
         this.photoTaken = false;
         
         // Atualizar UI
-        this.captureBtn.style.display = 'flex';
-        this.retakeBtn.style.display = 'none';
-        this.usePhotoBtn.style.display = 'none';
+        if (this.captureBtn) this.captureBtn.style.display = 'flex';
+        if (this.retakeBtn) this.retakeBtn.style.display = 'none';
+        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'none';
         
         // Iniciar câmera
         try {
@@ -92,6 +103,11 @@ export class CameraManager {
      * Inicia o stream de vídeo da câmera
      */
     async startCamera() {
+        if (!this.cameraFeed) {
+            console.error('Elemento de vídeo da câmera não encontrado');
+            return;
+        }
+        
         // Parar qualquer stream anterior
         if (this.stream) {
             this.stopCamera();
@@ -107,9 +123,23 @@ export class CameraManager {
             audio: false
         };
         
-        // Solicitar acesso à câmera
-        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-        this.cameraFeed.srcObject = this.stream;
+        try {
+            // Solicitar acesso à câmera
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            this.cameraFeed.srcObject = this.stream;
+            
+            // Garantir que o vídeo seja reproduzido
+            const playPromise = this.cameraFeed.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error('Erro ao reproduzir vídeo:', error);
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao acessar câmera:', error);
+            throw error;
+        }
     }
     
     /**
@@ -127,7 +157,9 @@ export class CameraManager {
      */
     closeCamera() {
         this.stopCamera();
-        this.cameraModal.classList.remove('active');
+        if (this.cameraModal) {
+            this.cameraModal.classList.remove('active');
+        }
         document.body.style.overflow = 'auto';
     }
     
@@ -135,10 +167,19 @@ export class CameraManager {
      * Captura uma foto do stream de vídeo
      */
     capturePhoto() {
-        if (!this.stream) return;
+        if (!this.stream || !this.cameraCanvas || !this.cameraFeed) {
+            console.error('Stream de vídeo ou canvas não disponível');
+            return;
+        }
         
         const context = this.cameraCanvas.getContext('2d');
         const { videoWidth, videoHeight } = this.cameraFeed;
+        
+        // Verificar se o vídeo tem dimensões válidas
+        if (videoWidth === 0 || videoHeight === 0) {
+            console.error('Dimensões do vídeo inválidas');
+            return;
+        }
         
         // Configurar canvas para as dimensões do vídeo
         this.cameraCanvas.width = videoWidth;
@@ -149,9 +190,9 @@ export class CameraManager {
         
         // Atualizar UI
         this.photoTaken = true;
-        this.captureBtn.style.display = 'none';
-        this.retakeBtn.style.display = 'flex';
-        this.usePhotoBtn.style.display = 'flex';
+        if (this.captureBtn) this.captureBtn.style.display = 'none';
+        if (this.retakeBtn) this.retakeBtn.style.display = 'flex';
+        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'flex';
         
         // Pausar vídeo e mostrar imagem capturada
         this.cameraFeed.pause();
@@ -161,7 +202,10 @@ export class CameraManager {
      * Descartar a foto capturada e voltar a mostrar o feed da câmera
      */
     retakePhoto() {
-        if (!this.stream) return;
+        if (!this.stream || !this.cameraCanvas) {
+            console.error('Stream de vídeo ou canvas não disponível');
+            return;
+        }
         
         // Limpar canvas
         const context = this.cameraCanvas.getContext('2d');
@@ -169,28 +213,40 @@ export class CameraManager {
         
         // Atualizar UI
         this.photoTaken = false;
-        this.captureBtn.style.display = 'flex';
-        this.retakeBtn.style.display = 'none';
-        this.usePhotoBtn.style.display = 'none';
+        if (this.captureBtn) this.captureBtn.style.display = 'flex';
+        if (this.retakeBtn) this.retakeBtn.style.display = 'none';
+        if (this.usePhotoBtn) this.usePhotoBtn.style.display = 'none';
         
         // Reiniciar vídeo
-        this.cameraFeed.play();
+        if (this.cameraFeed && this.cameraFeed.play) {
+            this.cameraFeed.play().catch(error => {
+                console.error('Erro ao reproduzir vídeo:', error);
+            });
+        }
     }
     
     /**
      * Usa a foto capturada e fecha o modal
      */
     usePhoto() {
-        if (!this.photoTaken || !this.onPhotoCapture) return;
+        if (!this.photoTaken || !this.onPhotoCapture || !this.cameraCanvas) {
+            console.error('Não foi possível usar a foto: foto não capturada ou callback ausente');
+            return;
+        }
         
-        // Converter imagem do canvas para base64
-        const imageData = this.cameraCanvas.toDataURL('image/jpeg');
-        
-        // Chamar callback com a imagem
-        this.onPhotoCapture(imageData);
-        
-        // Fechar modal
-        this.closeCamera();
+        try {
+            // Converter imagem do canvas para base64
+            const imageData = this.cameraCanvas.toDataURL('image/jpeg');
+            
+            // Chamar callback com a imagem
+            this.onPhotoCapture(imageData);
+            
+            // Fechar modal
+            this.closeCamera();
+        } catch (error) {
+            console.error('Erro ao processar a imagem:', error);
+            alert('Não foi possível processar a imagem capturada.');
+        }
     }
     
     /**
@@ -205,7 +261,12 @@ export class CameraManager {
             console.error('Erro ao alternar câmera:', error);
             // Tentar reverter para a configuração anterior
             this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
-            await this.startCamera();
+            try {
+                await this.startCamera();
+            } catch (secondError) {
+                console.error('Erro ao reverter configuração da câmera:', secondError);
+                alert('Não foi possível alternar entre as câmeras.');
+            }
         }
     }
 }
