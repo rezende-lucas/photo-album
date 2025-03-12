@@ -1,7 +1,9 @@
-import { getDOMElements, toggleDarkMode, toggleSidebar, updateSidebarActive } from './ui.js';
+import { getDOMElements, toggleDarkMode, toggleSidebar, updateSidebarActive, toggleUserDropdown } from './ui.js';
 import { openPersonDetails, openAddForm, openEditForm, savePerson, deletePerson, searchPeople } from './people.js';
 import { renderPeople } from './render.js';
+import { logoutUser } from './auth.js';
 import { state, setState } from '../main.js';
+import { showToast } from '../components/toast.js';
 
 /**
  * Configura todos os event listeners da aplicação
@@ -158,4 +160,36 @@ export function setupEventListeners() {
             }
         }
     });
+    
+    // User dropdown toggle
+    if (elements.userDropdownToggle) {
+        elements.userDropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleUserDropdown();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (elements.userDropdown && 
+                !elements.userDropdownToggle.contains(e.target) && 
+                !elements.userDropdown.contains(e.target)) {
+                elements.userDropdown.classList.remove('active');
+            }
+        });
+    }
+    
+    // Logout button
+    if (elements.logoutBtn) {
+        elements.logoutBtn.addEventListener('click', async () => {
+            const { error } = await logoutUser();
+            
+            if (error) {
+                showToast('Erro', 'Falha ao encerrar sessão.', 'error');
+                return;
+            }
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+        });
+    }
 }
