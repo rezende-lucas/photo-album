@@ -1,3 +1,15 @@
+// Configurar caminho base para importações dinâmicas
+const baseUrl = location.hostname === 'rezende-lucas.github.io' 
+    ? '/photo-album/js/modules/' 
+    : './modules/';
+
+// Função para resolver caminhos considerando o ambiente
+function resolvePath(module) {
+    return location.hostname === 'rezende-lucas.github.io'
+        ? `/photo-album/js/modules/${module}`
+        : `./modules/${module}`;
+}
+
 // main.js - Ponto de entrada da aplicação
 
 import { initializeSupabaseClient, loadPeopleFromDB } from './modules/storage.js';
