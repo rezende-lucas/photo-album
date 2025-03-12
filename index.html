@@ -254,7 +254,45 @@
             </div>
         </div>
     </div>
-    
+    <!-- Camera Modal -->
+<div class="modal-backdrop" id="camera-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <h2 class="modal-title">
+                    <i class="fas fa-camera"></i> Capturar Fotografia
+                </h2>
+                <div class="modal-subtitle">Posicione o rosto na área indicada</div>
+            </div>
+            <button class="close-btn" id="close-camera-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="camera-container">
+                <video id="camera-feed" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+                <div class="camera-overlay">
+                    <div class="camera-frame"></div>
+                </div>
+            </div>
+            <div class="camera-actions">
+                <button type="button" class="capture-btn" id="capture-btn">
+                    <i class="fas fa-camera"></i> Capturar Foto
+                </button>
+                <button type="button" class="retake-btn" id="retake-btn" style="display: none;">
+                    <i class="fas fa-redo"></i> Nova Foto
+                </button>
+                <button type="button" class="use-photo-btn" id="use-photo-btn" style="display: none;">
+                    <i class="fas fa-check"></i> Usar Esta Foto
+                </button>
+                <button type="button" class="switch-camera-btn" id="switch-camera-btn">
+                    <i class="fas fa-sync"></i> Alternar Câmera
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
     
