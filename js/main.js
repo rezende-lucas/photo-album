@@ -7,6 +7,7 @@ import { renderPeople } from './modules/render.js';
 import { requireAuth, getCurrentUser } from './modules/auth.js';
 import { showToast } from './components/toast.js';
 import { setupCameraButton } from './modules/people.js';
+import { initPhotoGallery } from './photoManager.js';
 
 // Estado global da aplicação
 export const state = {
@@ -62,6 +63,8 @@ async function init() {
     
     // Configurar listeners de eventos
     setupEventListeners();
+ // Initialize photo gallery
+    initPhotoGallery();
     
     // Configurar botão de câmera
     try {
