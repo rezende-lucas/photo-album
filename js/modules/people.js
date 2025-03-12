@@ -5,8 +5,39 @@ import { formatDate, emptyToNull, generateRegistrationId } from './utils.js';
 import { renderPeople } from './render.js';
 import { showToast } from '../components/toast.js';
 import { state } from '../main.js';
-import { getCameraManager } from './camera.js';
 import { setExistingPhotos, getCurrentPhotos } from './photoManager.js';
+
+/**
+ * Determina se o ambiente é GitHub Pages ou local
+ * @returns {boolean} Verdadeiro se for GitHub Pages
+ */
+function isGitHubPages() {
+    return window.location.hostname === 'rezende-lucas.github.io';
+}
+
+/**
+ * Retorna uma URL de placeholder segura para qualquer ambiente
+ * @param {number} width - Largura da imagem
+ * @param {number} height - Altura da imagem 
+ * @returns {string} URL da imagem placeholder
+ */
+function getPlaceholderImage(width = 400, height = 320) {
+    return isGitHubPages() 
+        ? `https://via.placeholder.com/${width}x${height}` 
+        : `/api/placeholder/${width}/${height}`;
+}
+
+/**
+ * Resolve o caminho para importações dinâmicas
+ * @param {string} modulePath - Caminho do módulo a ser importado
+ * @returns {string} Caminho correto para o módulo
+ */
+function resolveModulePath(modulePath) {
+    if (isGitHubPages()) {
+        return `/photo-album/js/modules/${modulePath}`;
+    }
+    return `./${modulePath}`;
+}
 
 /**
  * Abre modal de detalhes da pessoa
@@ -29,7 +60,7 @@ export function openPersonDetails(id) {
             `).join('')}
           </div>`
         : `<div class="modal-img">
-            <img src="${person.photo || '/api/placeholder/400/320'}" alt="${person.name}">
+            <img src="${person.photo || getPlaceholderImage(400, 320)}" alt="${person.name}">
             <div class="modal-stamp">CATALOGADO</div>
           </div>`;
     
@@ -181,39 +212,43 @@ export function setupCameraButton() {
         return;
     }
     
-    // Importação dinâmica do módulo de câmera para garantir que ele seja carregado corretamente
-    import(window.location.hostname === 'rezende-lucas.github.io' 
-    ? '/photo-album/js/modules/camera.js' 
-    : './camera.js').then(({ getCameraManager }) => {
-        cameraBtn.addEventListener('click', () => {
-            const cameraManager = getCameraManager();
-            
-            // Abrir câmera com callback para processar a foto
-            cameraManager.openCamera((imageData) => {
-                // Atualizar visualização do formulário
-                const fileNameElement = document.getElementById('file-name');
-                if (fileNameElement) {
-                    fileNameElement.textContent = 'Foto capturada com a câmera';
-                }
+    // Usar o caminho correto para importação dinâmica baseado no ambiente
+    const cameraModulePath = resolveModulePath('camera.js');
+    
+    // Importação dinâmica do módulo de câmera com caminho corrigido
+    import(cameraModulePath)
+        .then(({ getCameraManager }) => {
+            cameraBtn.addEventListener('click', () => {
+                const cameraManager = getCameraManager();
                 
-                // Armazenar dados da imagem para uso posterior
-                window.capturedImage = imageData;
-                
-                // Log para debug
-                console.log('Foto capturada com sucesso');
+                // Abrir câmera com callback para processar a foto
+                cameraManager.openCamera((imageData) => {
+                    // Atualizar visualização do formulário
+                    const fileNameElement = document.getElementById('file-name');
+                    if (fileNameElement) {
+                        fileNameElement.textContent = 'Foto capturada com a câmera';
+                    }
+                    
+                    // Usar o state para armazenar a imagem em vez de window
+                    if (typeof state.setState === 'function') {
+                        state.setState({ capturedImage: imageData });
+                    } else {
+                        // Fallback para window apenas se necessário
+                        window.capturedImage = imageData;
+                    }
+                    
+                    console.log('Foto capturada com sucesso');
+                });
             });
+            
+            console.log('Botão de câmera configurado com sucesso');
+        })
+        .catch(error => {
+            console.error('Erro ao carregar módulo de câmera:', error);
+            cameraBtn.style.display = 'none';
         });
-        
-        console.log('Botão de câmera configurado com sucesso');
-    }).catch(error => {
-        console.error('Erro ao carregar módulo de câmera:', error);
-        cameraBtn.style.display = 'none';
-    });
 }
 
-/**
- * Salvar dados da pessoa do formulário
- */
 /**
  * Salvar dados da pessoa do formulário
  */
