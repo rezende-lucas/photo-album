@@ -29,7 +29,14 @@ export function getDOMElements() {
         cancelForm: document.getElementById('cancel-form'),
         fileInput: document.getElementById('photo'),
         fileName: document.getElementById('file-name'),
-        toastContainer: document.getElementById('toast-container')
+        toastContainer: document.getElementById('toast-container'),
+        
+        // Novos elementos para autenticação
+        userDisplayName: document.getElementById('user-display-name'),
+        userAvatar: document.getElementById('user-avatar'),
+        logoutBtn: document.getElementById('logout-btn'),
+        userDropdown: document.getElementById('user-dropdown'),
+        userDropdownToggle: document.getElementById('user-dropdown-toggle')
     };
 }
 
@@ -90,6 +97,16 @@ export function toggleSidebar() {
 }
 
 /**
+ * Alterna a visibilidade do dropdown do usuário
+ */
+export function toggleUserDropdown() {
+    const elements = getDOMElements();
+    if (elements.userDropdown) {
+        elements.userDropdown.classList.toggle('active');
+    }
+}
+
+/**
  * Atualiza o estado ativo dos botões na barra lateral
  */
 export function updateSidebarActive(view) {
@@ -101,4 +118,43 @@ export function updateSidebarActive(view) {
             btn.classList.remove('active');
         }
     });
+}
+
+/**
+ * Inicializa elementos de interface do usuário relacionados a autenticação
+ */
+export function initializeUserUI(user) {
+    const elements = getDOMElements();
+    
+    // Atualizar nome de exibição do usuário
+    if (elements.userDisplayName && user) {
+        elements.userDisplayName.textContent = user.user_metadata?.name || user.email;
+    }
+    
+    // Se houver um avatar de usuário, atualizar
+    if (elements.userAvatar && user && user.user_metadata?.avatar_url) {
+        elements.userAvatar.src = user.user_metadata.avatar_url;
+    } else if (elements.userAvatar) {
+        // Avatar padrão com inicial do nome
+        const initials = (user?.user_metadata?.name || user?.email || 'U').charAt(0).toUpperCase();
+        elements.userAvatar.style.display = 'none';
+        if (elements.userAvatar.parentElement) {
+            elements.userAvatar.parentElement.innerHTML += `<div class="user-initials">${initials}</div>`;
+        }
+    }
+    
+    // Toggle do dropdown de usuário
+    if (elements.userDropdownToggle) {
+        elements.userDropdownToggle.addEventListener('click', toggleUserDropdown);
+        
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (elements.userDropdown && 
+                elements.userDropdownToggle && 
+                !elements.userDropdownToggle.contains(e.target) &&
+                !elements.userDropdown.contains(e.target)) {
+                elements.userDropdown.classList.remove('active');
+            }
+        });
+    }
 }
