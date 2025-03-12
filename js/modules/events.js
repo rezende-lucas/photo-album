@@ -6,6 +6,25 @@ import { state, setState } from '../main.js';
 import { showToast } from '../components/toast.js';
 
 /**
+ * Verifica se a aplicação está rodando no GitHub Pages
+ * @returns {boolean} Verdadeiro se estiver no GitHub Pages
+ */
+function isGitHubPages() {
+    return window.location.hostname === 'rezende-lucas.github.io';
+}
+
+/**
+ * Resolve caminhos de módulos para importação baseado no ambiente
+ * @param {string} modulePath - Caminho do módulo
+ * @returns {string} Caminho resolvido
+ */
+function resolveModulePath(modulePath) {
+    return isGitHubPages() 
+        ? `/photo-album/js/modules/${modulePath}` 
+        : `./${modulePath}`;
+}
+
+/**
  * Configura todos os event listeners da aplicação
  */
 export function setupEventListeners() {
@@ -146,7 +165,7 @@ export function setupEventListeners() {
     
     // Event listeners para detalhes da pessoa
     document.addEventListener('click', (e) => {
-        if (elements.personDetails.contains(e.target)) {
+        if (elements.personDetails && elements.personDetails.contains(e.target)) {
             const editBtn = e.target.closest('.modal-btn.edit-btn');
             const deleteBtn = e.target.closest('.modal-btn.delete-btn');
             
@@ -171,6 +190,7 @@ export function setupEventListeners() {
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (elements.userDropdown && 
+                elements.userDropdownToggle && 
                 !elements.userDropdownToggle.contains(e.target) && 
                 !elements.userDropdown.contains(e.target)) {
                 elements.userDropdown.classList.remove('active');
@@ -181,15 +201,21 @@ export function setupEventListeners() {
     // Logout button
     if (elements.logoutBtn) {
         elements.logoutBtn.addEventListener('click', async () => {
-            const { error } = await logoutUser();
-            
-            if (error) {
+            try {
+                const { error } = await logoutUser();
+                
+                if (error) {
+                    showToast('Erro', 'Falha ao encerrar sessão.', 'error');
+                    return;
+                }
+                
+                // Corrigir redirecionamento utilizando caminho relativo
+                const loginPage = isGitHubPages() ? '/photo-album/login.html' : './login.html';
+                window.location.href = loginPage;
+            } catch (error) {
+                console.error('Erro durante logout:', error);
                 showToast('Erro', 'Falha ao encerrar sessão.', 'error');
-                return;
             }
-            
-            // Redirect to login page
-            window.location.href = 'login.html';
         });
     }
 }
