@@ -17,36 +17,68 @@
     
     <div class="app-container">
         <!-- Header -->
-        <header class="header">
-            <div class="brand">
-                <button class="menu-toggle" id="menu-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="logo">
-                    <i class="fas fa-shield-alt"></i>
+        <!-- Header Section Updated (Replace the existing header section in index.html) -->
+<header class="header">
+    <div class="brand">
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="brand-name">
+            Sistema I.D.C.T.
+            <span class="brand-subtitle">identificação e catalogação tática</span>
+        </div>
+    </div>
+    
+    <div class="header-actions">
+        <div class="header-status">
+            <span class="status-indicator"></span>
+            Sistema Operacional
+        </div>
+        
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" id="search-input" placeholder="PESQUISAR REGISTRO...">
+        </div>
+        
+        <button class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+        
+        <!-- User profile dropdown -->
+        <div class="user-dropdown-container">
+            <button class="user-dropdown-toggle" id="user-dropdown-toggle">
+                <span class="user-display-name" id="user-display-name">Usuário</span>
+                <div class="user-avatar-container">
+                    <img src="/api/placeholder/40/40" alt="Avatar" class="user-avatar" id="user-avatar">
                 </div>
-                <div class="brand-name">
-                    Sistema I.D.C.T.
-                    <span class="brand-subtitle">identificação e catalogação tática</span>
-                </div>
-            </div>
+            </button>
             
-            <div class="header-actions">
-                <div class="header-status">
-                    <span class="status-indicator"></span>
-                    Sistema Operacional
+            <div class="user-dropdown" id="user-dropdown">
+                <div class="dropdown-header">
+                    <div class="dropdown-user-info">
+                        <div class="dropdown-user-name" id="dropdown-user-name">Usuário</div>
+                        <div class="dropdown-user-role">Operador</div>
+                    </div>
                 </div>
-                
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="search-input" placeholder="PESQUISAR REGISTRO...">
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i> Meu Perfil
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i> Configurações
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item text-danger" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
                 </div>
-                
-                <button class="theme-toggle" id="theme-toggle">
-                    <i class="fas fa-moon"></i>
-                </button>
             </div>
-        </header>
+        </div>
+    </div>
+</header>
         
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
