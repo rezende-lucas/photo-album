@@ -4,6 +4,8 @@ import { initializeSupabaseClient, loadPeopleFromDB } from './modules/storage.js
 import { getDOMElements } from './modules/ui.js';
 import { setupEventListeners } from './modules/events.js';
 import { renderPeople } from './modules/render.js';
+import { requireAuth, getCurrentUser, logoutUser } from './modules/auth.js';
+import { showToast } from './components/toast.js';
 
 // Estado global da aplicação
 export const state = {
@@ -11,7 +13,8 @@ export const state = {
     currentPersonId: null,
     currentView: 'grid',
     isDarkMode: false,
-    supabaseClient: null
+    supabaseClient: null,
+    currentUser: null
 };
 
 // Função para atualizar o estado
@@ -21,7 +24,20 @@ export function setState(newState) {
 
 // Inicialização da aplicação
 async function init() {
+    // Verificar autenticação
+    const isAuthenticated = await requireAuth();
+    if (!isAuthenticated) return; // Redireciona para login.html
+    
     const elements = getDOMElements();
+    
+    // Obter dados do usuário atual
+    const { user } = await getCurrentUser();
+    setState({ currentUser: user });
+    
+    // Atualizar UI com informações do usuário
+    if (user && elements.userDisplayName) {
+        elements.userDisplayName.textContent = user.user_metadata?.name || user.email;
+    }
     
     // Verificar tema escuro
     state.isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -45,6 +61,19 @@ async function init() {
     
     // Configurar listeners de eventos
     setupEventListeners();
+    
+    // Configurar listener de logout
+    if (elements.logoutBtn) {
+        elements.logoutBtn.addEventListener('click', async () => {
+            const { error } = await logoutUser();
+            if (error) {
+                showToast('Erro', 'Falha ao encerrar sessão', 'error');
+                return;
+            }
+            
+            window.location.href = 'login.html';
+        });
+    }
 }
 
 // Inicializar quando o DOM estiver pronto
