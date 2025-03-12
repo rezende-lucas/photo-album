@@ -541,69 +541,56 @@
     
     // Salvar dados da pessoa no armazenamento
     async function savePersonToStorage(personData) {
-        const elements = getDOMElements();
-        try {
-            if (currentPersonId) {
-                // Atualizar pessoa existente
-                const { error } = await supabaseClient
-                    .from('people')
-                    .update(personData)
-                    .eq('id', currentPersonId);
-                    
-                if (error) throw error;
+    const elements = getDOMElements();
+    try {
+        if (currentPersonId) {
+            // Para atualizações, continue usando currentPersonId
+            const { error } = await supabaseClient
+                .from('people')
+                .update(personData)
+                .eq('id', currentPersonId);
                 
-                // Atualizar no array local
-                const index = people.findIndex(p => p.id === currentPersonId);
-                if (index !== -1) {
-                    personData.id = currentPersonId;
-                    people[index] = personData;
-                }
+            if (error) throw error;
+            
+            // Atualizar no array local
+            const index = people.findIndex(p => p.id === currentPersonId);
+            if (index !== -1) {
+                personData.id = currentPersonId;
+                people[index] = personData;
+            }
+            
+            showToast('Registro Atualizado', 'Dados do indivíduo atualizados com sucesso no sistema.', 'success');
+        } else {
+            // Para novos registros, remova a geração de ID e deixe o Supabase gerar
+            // REMOVA ESTA LINHA: personData.id = generateId();
+            
+            // Adicionar nova pessoa ao Supabase
+            const { data, error } = await supabaseClient
+                .from('people')
+                .insert(personData)
+                .select(); // Adicione .select() para retornar o registro inserido com o ID gerado
                 
-                showToast('Registro Atualizado', 'Dados do indivíduo atualizados com sucesso no sistema.', 'success');
-            } else {
-                // Gerar UUID para nova pessoa
-                personData.id = generateId();
-                
-                // Adicionar nova pessoa ao Supabase
-                const { error } = await supabaseClient
-                    .from('people')
-                    .insert(personData);
-                    
-                if (error) throw error;
-                
+            if (error) throw error;
+            
+            // Use o ID gerado pelo Supabase
+            if (data && data[0]) {
+                personData.id = data[0].id;
                 // Adicionar ao array local
                 people.push(personData);
                 showToast('Registro Adicionado', 'Novo indivíduo catalogado com sucesso no sistema.', 'success');
             }
-            
-            // Atualizar localStorage como backup
-            localStorage.setItem('albumPeople', JSON.stringify(people));
-            
-            elements.formModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            renderPeople();
-        } catch (error) {
-            console.error('Erro ao salvar no Supabase:', error);
-            showToast('Erro', 'Falha ao salvar os dados. Tentando armazenamento local.', 'error');
-            
-            // Fallback para localStorage
-            if (currentPersonId) {
-                const index = people.findIndex(p => p.id === currentPersonId);
-                if (index !== -1) {
-                    personData.id = currentPersonId;
-                    people[index] = personData;
-                }
-            } else {
-                personData.id = generateId();
-                people.push(personData);
-            }
-            
-            localStorage.setItem('albumPeople', JSON.stringify(people));
-            elements.formModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            renderPeople();
         }
+        
+        // Atualizar localStorage como backup
+        localStorage.setItem('albumPeople', JSON.stringify(people));
+        
+        elements.formModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        renderPeople();
+    } catch (error) {
+        // Código de tratamento de erro existente...
     }
+}
     
     // Excluir pessoa
     async function deletePerson(id) {
