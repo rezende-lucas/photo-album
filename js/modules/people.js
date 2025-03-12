@@ -182,7 +182,9 @@ export function setupCameraButton() {
     }
     
     // Importação dinâmica do módulo de câmera para garantir que ele seja carregado corretamente
-    import('./camera.js').then(({ getCameraManager }) => {
+    import(window.location.hostname === 'rezende-lucas.github.io' 
+    ? '/photo-album/js/modules/camera.js' 
+    : './camera.js').then(({ getCameraManager }) => {
         cameraBtn.addEventListener('click', () => {
             const cameraManager = getCameraManager();
             
