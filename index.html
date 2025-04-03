@@ -1,336 +1,45 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Identificação e Catalogação Tático</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-    <div class="scan-lines"></div>
-    
-    <div class="tactical-header">
-        <div class="tactical-stripes"></div>
-    </div>
-    
-    <div class="app-container">
-        <!-- Header -->
-        <!-- Header Section Updated (Replace the existing header section in index.html) -->
-<header class="header">
-    <div class="brand">
-        <button class="menu-toggle" id="menu-toggle">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="logo">
-            <i class="fas fa-shield-alt"></i>
-        </div>
-        <div class="brand-name">
-            Sistema I.D.C.T.
-            <span class="brand-subtitle">identificação e catalogação tática</span>
+
+<!-- Existing HTML content -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="mother" class="form-label">Nome da Mãe</label>
+            <input type="text" class="form-control" id="mother" name="mother" placeholder="NOME DA MÃE">
         </div>
     </div>
-    
-    <div class="header-actions">
-        <div class="header-status">
-            <span class="status-indicator"></span>
-            Sistema Operacional
-        </div>
-        
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-input" id="search-input" placeholder="PESQUISAR REGISTRO...">
-        </div>
-        
-        <button class="theme-toggle" id="theme-toggle">
-            <i class="fas fa-moon"></i>
-        </button>
-        
-        <!-- User profile dropdown -->
-        <div class="user-dropdown-container">
-            <button class="user-dropdown-toggle" id="user-dropdown-toggle">
-                <span class="user-display-name" id="user-display-name">Usuário</span>
-                <div class="user-avatar-container">
-                    <!-- Atualizado para usar serviço mais confiável de imagens placeholder -->
-                    <img src="https://placehold.co/40x40" alt="Avatar" class="user-avatar" id="user-avatar">
-                </div>
-            </button>
-            
-            <div class="user-dropdown" id="user-dropdown">
-                <div class="dropdown-header">
-                    <div class="dropdown-user-info">
-                        <div class="dropdown-user-name" id="dropdown-user-name">Usuário</div>
-                        <div class="dropdown-user-role">Operador</div>
-                    </div>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-user"></i> Meu Perfil
-                    </a>
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-cog"></i> Configurações
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <button class="dropdown-item text-danger" id="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i> Sair
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
-        
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-section">
-                <h3 class="section-title">Visualização</h3>
-                <button class="sidebar-btn active" data-view="grid">
-                    <i class="fas fa-th sidebar-icon"></i>
-                    <span>Grade</span>
-                </button>
-                
-                <button class="sidebar-btn" data-view="list">
-                    <i class="fas fa-list sidebar-icon"></i>
-                    <span>Lista</span>
-                </button>
-            </div>
-            
-            <div class="sidebar-section">
-                <h3 class="section-title">Ações</h3>
-                <button class="sidebar-btn" id="sidebar-add-btn">
-                    <i class="fas fa-user-plus sidebar-icon"></i>
-                    <span>Adicionar Pessoa</span>
-                </button>
-            </div>
-            
-            <div class="sidebar-section">
-                <h3 class="section-title">Filtros</h3>
-                <button class="sidebar-btn">
-                    <i class="fas fa-filter sidebar-icon"></i>
-                    <span>Mostrar Todos</span>
-                </button>
-            </div>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="content-area">
-                <div class="content-header">
-                    <div class="system-info">
-                        <h2 class="content-title">
-                            <i class="fas fa-database"></i>
-                            Sistema de Catalogação
-                            <span class="tactical-badge">tático</span>
-                        </h2>
-                        <div class="system-version">v2.5.0 | ID:SYS-45A7-2025</div>
-                    </div>
-                    
-                    <button class="add-btn" id="add-person-btn">
-                        <i class="fas fa-user-plus"></i> Adicionar Registro
-                    </button>
-                </div>
-                
-                <div class="view-options">
-                    <button class="view-btn active" id="grid-view-btn">
-                        <i class="fas fa-th"></i> Grade
-                    </button>
-                    <button class="view-btn" id="list-view-btn">
-                        <i class="fas fa-list"></i> Lista
-                    </button>
-                </div>
-                
-                <!-- Photo Grid View -->
-                <div class="photo-grid" id="photo-grid"></div>
-                
-                <!-- Photo List View -->
-                <div class="photo-list" id="photo-list"></div>
-                
-                <!-- Empty State -->
-                <div class="empty-state" id="empty-state">
-                    <i class="fas fa-database empty-icon"></i>
-                    <h2 class="empty-title">Banco de Dados Vazio</h2>
-                    <p class="empty-text">Nenhum registro localizado no sistema. Adicione um novo registro para iniciar o banco de dados tático.</p>
-                    <button class="add-btn" id="empty-add-btn">
-                        <i class="fas fa-user-plus"></i> Adicionar Registro
-                    </button>
-                </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- Person Details Modal -->
-    <div class="modal-backdrop" id="person-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <h2 class="modal-title">
-                        <i class="fas fa-id-card"></i> Ficha Completa
-                    </h2>
-                    <div class="modal-subtitle" id="person-id">REG-ID: 00000000</div>
-                </div>
-                <button class="close-btn" id="close-person-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-content" id="person-details">
-                    <!-- Will be filled dynamically with JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Add/Edit Person Modal -->
-    <div class="modal-backdrop" id="form-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <h2 class="modal-title" id="form-title">
-                        <i class="fas fa-user-plus"></i> Adicionar Novo Registro
-                    </h2>
-                    <div class="modal-subtitle">Preencha todos os campos obrigatórios</div>
-                </div>
-                <button class="close-btn" id="close-form-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="person-form">
-                    <div class="form-grid">
-                        <div>
-                            <div class="form-group">
-                                <label for="name" class="form-label">Nome Completo</label>
-                                <input type="text" class="form-control" id="name" name="name" required placeholder="NOME COMPLETO">
-                            </div>
-                            <div class="form-group">
-                                <label for="filiation" class="form-label">Filiação</label>
-                                <input type="text" class="form-control" id="filiation" name="filiation" placeholder="NOME DOS PAIS">
-                            </div>
-                            <div class="form-group">
-                                <label for="address" class="form-label">Endereço</label>
-                                <input type="text" class="form-control" id="address" name="address" placeholder="ENDEREÇO COMPLETO">
-                            </div>
-                            <div class="form-group">
-                                <label for="history" class="form-label">Histórico/Observações</label>
-                                <textarea class="form-control" id="history" name="history" placeholder="INFORMAÇÕES RELEVANTES SOBRE O INDIVÍDUO"></textarea>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="form-group">
-    <label class="form-label">Fotografias</label>
-    
-    <!-- Photos preview area -->
-    <div class="photos-gallery" id="photos-gallery">
-        <!-- Placeholder when no photos -->
-        <div class="photo-placeholder" id="photo-placeholder">
-            <i class="fas fa-camera-retro"></i>
-            <span>CLIQUE PARA ADICIONAR FOTO DE IDENTIFICAÇÃO</span>
-        </div>
-        
-        <!-- Photo previews will be added here dynamically -->
-    </div>
-    
-    <!-- Control buttons -->
-    <div class="photo-controls">
-        <!-- File input for selecting photos from device -->
-        <label class="photo-btn">
-            <i class="fas fa-upload"></i> Selecionar foto
-            <input type="file" id="photo-file-input" accept="image/*" style="display:none;" multiple>
-        </label>
-        
-        <!-- Camera button -->
-        <button type="button" class="photo-btn" id="camera-btn">
-            <i class="fas fa-camera"></i> Usar Câmera
-        </button>
-    </div>
-</div>
-                            <div class="form-group">
-                                <label for="dob" class="form-label">Data de Nascimento</label>
-                                <input type="date" class="form-control" id="dob" name="dob">
-                            </div>
-                            <div class="form-group">
-                                <label for="phone" class="form-label">Telefone</label>
-                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="(00) 00000-0000">
-                            </div>
-                            <div class="form-group">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="exemplo@email.com">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="cancel-btn" id="cancel-form">Cancelar</button>
-                        <button type="submit" class="save-btn">Salvar Registro</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <!-- Camera Modal -->
-<div class="modal-backdrop" id="camera-modal">
-    <div class="modal">
-        <div class="modal-header">
-            <div>
-                <h2 class="modal-title">
-                    <i class="fas fa-camera"></i> Capturar Fotografia
-                </h2>
-                <div class="modal-subtitle">Posicione o rosto na área indicada</div>
-            </div>
-            <button class="close-btn" id="close-camera-modal">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body">
-            <div class="camera-container">
-                <video id="camera-feed" autoplay playsinline></video>
-                <canvas id="camera-canvas" style="display: none;"></canvas>
-                <div class="camera-overlay">
-                    <div class="camera-frame"></div>
-                </div>
-            </div>
-            <div class="camera-actions">
-                <button type="button" class="capture-btn" id="capture-btn">
-                    <i class="fas fa-camera"></i> Capturar Foto
-                </button>
-                <button type="button" class="retake-btn" id="retake-btn" style="display: none;">
-                    <i class="fas fa-redo"></i> Nova Foto
-                </button>
-                <button type="button" class="use-photo-btn" id="use-photo-btn" style="display: none;">
-                    <i class="fas fa-check"></i> Usar Esta Foto
-                </button>
-                <button type="button" class="switch-camera-btn" id="switch-camera-btn">
-                    <i class="fas fa-sync"></i> Alternar Câmera
-                </button>
-            </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="mother-cpf" class="form-label">CPF da Mãe</label>
+            <input type="text" class="form-control cpf-mask" id="mother-cpf" name="mother-cpf" placeholder="CPF DA MÃE">
         </div>
     </div>
 </div>
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-    
-    <!-- Radar Animation -->
-    <div class="radar-container">
-        <svg class="radar-svg" viewBox="0 0 100 100">
-            <circle class="radar-circle" cx="50" cy="50" r="45"/>
-            <circle class="radar-circle" cx="50" cy="50" r="30"/>
-            <circle class="radar-circle" cx="50" cy="50" r="15"/>
-            <line class="radar-line" x1="50" y1="50" x2="50" y2="5" />
-            <circle class="radar-dot" cx="65" cy="30" r="2">
-                <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" begin="1s"/>
-            </circle>
-            <circle class="radar-dot" cx="80" cy="65" r="2">
-                <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" begin="2s"/>
-            </circle>
-            <circle class="radar-dot" cx="35" cy="75" r="2">
-                <animate attributeName="opacity" values="0;1;0" dur="4s" repeatCount="indefinite" begin="0s"/>
-            </circle>
-        </svg>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="mother-rg" class="form-label">RG da Mãe</label>
+            <input type="text" class="form-control rg-mask" id="mother-rg" name="mother-rg" placeholder="RG DA MÃE">
+        </div>
     </div>
-     <script src="js/config.js"></script>  
-    <!-- 1. Versão original - use durante o desenvolvimento -->
-    <!-- <script src="js/script.js"></script> -->    
-    <!-- 2. Versão modular - ative quando estiver pronto -->
-    <script type="module" src="js/main.js"></script>
-</body>
-</html>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="father" class="form-label">Nome do Pai</label>
+            <input type="text" class="form-control" id="father" name="father" placeholder="NOME DO PAI">
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="father-cpf" class="form-label">CPF do Pai</label>
+            <input type="text" class="form-control cpf-mask" id="father-cpf" name="father-cpf" placeholder="CPF DO PAI">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="father-rg" class="form-label">RG do Pai</label>
+            <input type="text" class="form-control rg-mask" id="father-rg" name="father-rg" placeholder="RG DO PAI">
+        </div>
+    </div>
+</div>
+<!-- Rest of the existing HTML content -->
