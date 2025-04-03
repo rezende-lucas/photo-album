@@ -69,6 +69,10 @@ export function openPersonDetails(id) {
             <div class="modal-stamp">CATALOGADO</div>
           </div>`;
     
+    // Utiliza os novos campos mother e father, com fallback para filiation
+    const motherInfo = person.mother || (person.filiation ? person.filiation.split(' e ')[0] : '');
+    const fatherInfo = person.father || (person.filiation && person.filiation.includes(' e ') ? person.filiation.split(' e ')[1] : '');
+    
     elements.personDetails.innerHTML = `
         ${photoGalleryHTML}
         <div class="modal-details">
@@ -79,13 +83,48 @@ export function openPersonDetails(id) {
                     </div>
                     <div class="detail-text">${person.name}</div>
                 </div>
+                
+                <!-- CPF e RG -->
+                ${person.CPF ? `
                 <div class="detail-group">
                     <div class="detail-label">
-                        <i class="fas fa-user-friends"></i> Filiação
+                        <i class="fas fa-id-card"></i> CPF
                     </div>
-                    <div class="detail-text">${person.filiation || 'Não informado'}</div>
+                    <div class="detail-text">${person.CPF}</div>
                 </div>
+                ` : ''}
+                
+                ${person.RG ? `
+                <div class="detail-group">
+                    <div class="detail-label">
+                        <i class="fas fa-id-badge"></i> RG
+                    </div>
+                    <div class="detail-text">${person.RG}</div>
+                </div>
+                ` : ''}
             </div>
+            
+            <div class="detail-row">
+                <!-- Mãe e Pai em vez de Filiação -->
+                ${motherInfo ? `
+                <div class="detail-group">
+                    <div class="detail-label">
+                        <i class="fas fa-female"></i> Mãe
+                    </div>
+                    <div class="detail-text">${motherInfo}</div>
+                </div>
+                ` : ''}
+                
+                ${fatherInfo ? `
+                <div class="detail-group">
+                    <div class="detail-label">
+                        <i class="fas fa-male"></i> Pai
+                    </div>
+                    <div class="detail-text">${fatherInfo}</div>
+                </div>
+                ` : ''}
+            </div>
+            
             <div class="detail-row">
                 <div class="detail-group">
                     <div class="detail-label">
@@ -204,8 +243,29 @@ export function openEditForm(id) {
     const nameInput = document.getElementById('name');
     if (nameInput) nameInput.value = person.name || '';
     
-    const filiationInput = document.getElementById('filiation');
-    if (filiationInput) filiationInput.value = person.filiation || '';
+    // Lidar com os novos campos (mãe, pai, CPF e RG)
+    // Para compatibilidade com dados antigos, usamos filiation se necessário
+    
+    const motherInput = document.getElementById('mother');
+    if (motherInput) {
+        // Se tiver mother, usa. Senão, tenta extrair da filiation
+        motherInput.value = person.mother || 
+            (person.filiation ? person.filiation.split(' e ')[0].trim() : '');
+    }
+    
+    const fatherInput = document.getElementById('father');
+    if (fatherInput) {
+        // Se tiver father, usa. Senão, tenta extrair da filiation
+        fatherInput.value = person.father || 
+            (person.filiation && person.filiation.includes(' e ') ? 
+             person.filiation.split(' e ')[1].trim() : '');
+    }
+    
+    const cpfInput = document.getElementById('CPF');
+    if (cpfInput) cpfInput.value = person.CPF || '';
+    
+    const rgInput = document.getElementById('RG');
+    if (rgInput) rgInput.value = person.RG || '';
     
     const addressInput = document.getElementById('address');
     if (addressInput) addressInput.value = person.address || '';
@@ -315,9 +375,13 @@ export function savePerson(event) {
     
     const formData = new FormData(elements.personForm);
     
+    // Atualizado para incluir os novos campos
     const personData = {
         name: formData.get('name'),
-        filiation: emptyToNull(formData.get('filiation')),
+        mother: emptyToNull(formData.get('mother')),
+        father: emptyToNull(formData.get('father')),
+        CPF: emptyToNull(formData.get('CPF')),
+        RG: emptyToNull(formData.get('RG')),
         address: emptyToNull(formData.get('address')),
         history: emptyToNull(formData.get('history')),
         dob: emptyToNull(formData.get('dob')),
@@ -325,6 +389,17 @@ export function savePerson(event) {
         email: emptyToNull(formData.get('email')),
         photo: null // Inicializa com valor nulo
     };
+    
+    // Para compatibilidade, também preenche o campo filiation com base nos campos mother e father
+    if (personData.mother || personData.father) {
+        if (personData.mother && personData.father) {
+            personData.filiation = `${personData.mother} e ${personData.father}`;
+        } else if (personData.mother) {
+            personData.filiation = personData.mother;
+        } else if (personData.father) {
+            personData.filiation = personData.father;
+        }
+    }
     
     // Obter as fotos atuais
     const currentPhotos = typeof getCurrentPhotos === 'function' ? getCurrentPhotos() : [];
@@ -346,10 +421,14 @@ export function savePerson(event) {
 async function savePersonToStorage(personData) {
     const elements = getDOMElements();
     
-    // Criar uma cópia do objeto para enviar ao Supabase, excluindo propriedades não existentes na tabela
+    // Criar uma cópia do objeto para enviar ao Supabase, incluindo os novos campos
     const supabaseData = {
         name: personData.name,
-        filiation: personData.filiation,
+        mother: personData.mother,
+        father: personData.father,
+        CPF: personData.CPF,
+        RG: personData.RG,
+        filiation: personData.filiation,  // Para compatibilidade
         address: personData.address,
         history: personData.history,
         dob: personData.dob,
@@ -486,6 +565,12 @@ export function searchPeople(query) {
         const regId = generateRegistrationId(person.id).toLowerCase();
         return (
             person.name.toLowerCase().includes(lowerQuery) ||
+            // Adiciona pesquisa nos novos campos
+            (person.mother && person.mother.toLowerCase().includes(lowerQuery)) ||
+            (person.father && person.father.toLowerCase().includes(lowerQuery)) ||
+            (person.CPF && person.CPF.toLowerCase().includes(lowerQuery)) ||
+            (person.RG && person.RG.toLowerCase().includes(lowerQuery)) ||
+            // Mantém a pesquisa no campo filiation para compatibilidade
             (person.filiation && person.filiation.toLowerCase().includes(lowerQuery)) ||
             (person.address && person.address.toLowerCase().includes(lowerQuery)) ||
             (person.history && person.history.toLowerCase().includes(lowerQuery)) ||
