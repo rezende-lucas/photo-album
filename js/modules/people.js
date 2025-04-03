@@ -143,16 +143,42 @@ export function openPersonDetails(id) {
  */
 export function openAddForm() {
     const elements = getDOMElements();
-    document.getElementById('form-title').innerHTML = '<i class="fas fa-user-plus"></i> Adicionar Novo Registro';
-    elements.personForm.reset();
-    elements.fileName.textContent = '';
+    // Verificar se o elemento existe antes de tentar acessar suas propriedades
+    const formTitle = document.getElementById('form-title');
+    
+    if (formTitle) {
+        formTitle.innerHTML = '<i class="fas fa-user-plus"></i> Adicionar Novo Registro';
+    }
+    
+    // Verificar se o formulário existe
+    if (elements.personForm) {
+        elements.personForm.reset();
+    }
+    
+    // Verificar se o elemento filename existe
+    const filenameElement = document.getElementById('file-name');
+    if (filenameElement) {
+        filenameElement.textContent = '';
+    }
+    
     state.currentPersonId = null;
     
-    // Reset the photo gallery
-    setExistingPhotos([]);
+    // Verificar se a função existe antes de chamá-la
+    if (typeof setExistingPhotos === 'function') {
+        try {
+            setExistingPhotos([]);
+        } catch (error) {
+            console.warn('Não foi possível resetar a galeria de fotos:', error);
+        }
+    }
     
-    elements.formModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    // Verificar se o modal existe
+    if (elements.formModal) {
+        elements.formModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    } else {
+        console.error('Modal de formulário não encontrado');
+    }
 }
 
 /**
