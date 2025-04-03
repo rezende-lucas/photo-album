@@ -6,11 +6,7 @@
     <title>Sistema de Identificação e Catalogação Tático</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/ocr-styles.css">
-    <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Tesseract.js - Include v2 for better browser compatibility -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
 </head>
 <body>
     <div class="scan-lines"></div>
@@ -127,7 +123,7 @@
                             Sistema de Catalogação
                             <span class="tactical-badge">tático</span>
                         </h2>
-                        <div class="system-version">v2.6.0 | ID:SYS-45A7-2025</div>
+                        <div class="system-version">v2.5.0 | ID:SYS-45A7-2025</div>
                     </div>
                     
                     <button class="add-btn" id="add-person-btn">
@@ -236,41 +232,33 @@
                         </div>
                         <div>
                             <div class="form-group">
-                                <label class="form-label">Fotografias</label>
-                                
-                                <!-- Photos preview area -->
-                                <div class="photos-gallery" id="photos-gallery">
-                                    <!-- Placeholder when no photos -->
-                                    <div class="photo-placeholder" id="photo-placeholder">
-                                        <i class="fas fa-camera-retro"></i>
-                                        <span>CLIQUE PARA ADICIONAR FOTO DE IDENTIFICAÇÃO</span>
-                                    </div>
-                                    
-                                    <!-- Photo previews will be added here dynamically -->
-                                </div>
-                                
-                                <!-- Control buttons -->
-                                <div class="photo-controls">
-                                    <!-- File input for selecting photos from device -->
-                                    <label class="photo-btn">
-                                        <i class="fas fa-upload"></i> Selecionar foto
-                                        <input type="file" id="photo-file-input" accept="image/*" style="display:none;" multiple>
-                                    </label>
-                                    
-                                    <!-- Camera button -->
-                                    <button type="button" class="photo-btn" id="camera-btn">
-                                        <i class="fas fa-camera"></i> Usar Câmera
-                                    </button>
-                                    
-                                    <!-- OCR button (will be added dynamically by JS) -->
-                                </div>
-                                
-                                <!-- OCR Progress Indicator -->
-                                <div class="ocr-progress-container" id="ocr-progress-container" style="display: none;">
-                                    <div class="ocr-progress-bar" id="ocr-progress-bar" style="width: 0%"></div>
-                                    <div class="ocr-progress-label" id="ocr-progress-label">Processando OCR...</div>
-                                </div>
-                            </div>
+    <label class="form-label">Fotografias</label>
+    
+    <!-- Photos preview area -->
+    <div class="photos-gallery" id="photos-gallery">
+        <!-- Placeholder when no photos -->
+        <div class="photo-placeholder" id="photo-placeholder">
+            <i class="fas fa-camera-retro"></i>
+            <span>CLIQUE PARA ADICIONAR FOTO DE IDENTIFICAÇÃO</span>
+        </div>
+        
+        <!-- Photo previews will be added here dynamically -->
+    </div>
+    
+    <!-- Control buttons -->
+    <div class="photo-controls">
+        <!-- File input for selecting photos from device -->
+        <label class="photo-btn">
+            <i class="fas fa-upload"></i> Selecionar foto
+            <input type="file" id="photo-file-input" accept="image/*" style="display:none;" multiple>
+        </label>
+        
+        <!-- Camera button -->
+        <button type="button" class="photo-btn" id="camera-btn">
+            <i class="fas fa-camera"></i> Usar Câmera
+        </button>
+    </div>
+</div>
                             <div class="form-group">
                                 <label for="dob" class="form-label">Data de Nascimento</label>
                                 <input type="date" class="form-control" id="dob" name="dob">
@@ -293,49 +281,45 @@
             </div>
         </div>
     </div>
-    
     <!-- Camera Modal -->
-    <div class="modal-backdrop" id="camera-modal">
-        <div class="modal">
-            <div class="modal-header">
-                <div>
-                    <h2 class="modal-title">
-                        <i class="fas fa-camera"></i> Capturar Fotografia
-                    </h2>
-                    <div class="modal-subtitle">Posicione o rosto na área indicada</div>
-                </div>
-                <button class="close-btn" id="close-camera-modal">
-                    <i class="fas fa-times"></i>
-                </button>
+<div class="modal-backdrop" id="camera-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div>
+                <h2 class="modal-title">
+                    <i class="fas fa-camera"></i> Capturar Fotografia
+                </h2>
+                <div class="modal-subtitle">Posicione o rosto na área indicada</div>
             </div>
-            <div class="modal-body">
-                <div class="camera-container">
-                    <video id="camera-feed" autoplay playsinline></video>
-                    <canvas id="camera-canvas" style="display: none;"></canvas>
-                    <div class="camera-overlay">
-                        <div class="camera-frame"></div>
-                    </div>
+            <button class="close-btn" id="close-camera-modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="camera-container">
+                <video id="camera-feed" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+                <div class="camera-overlay">
+                    <div class="camera-frame"></div>
                 </div>
-                <div class="camera-actions">
-                    <button type="button" class="capture-btn" id="capture-btn">
-                        <i class="fas fa-camera"></i> Capturar Foto
-                    </button>
-                    <button type="button" class="retake-btn" id="retake-btn" style="display: none;">
-                        <i class="fas fa-redo"></i> Nova Foto
-                    </button>
-                    <button type="button" class="use-photo-btn" id="use-photo-btn" style="display: none;">
-                        <i class="fas fa-check"></i> Usar Esta Foto
-                    </button>
-                    <button type="button" class="switch-camera-btn" id="switch-camera-btn">
-                        <i class="fas fa-sync"></i> Alternar Câmera
-                    </button>
-                </div>
+            </div>
+            <div class="camera-actions">
+                <button type="button" class="capture-btn" id="capture-btn">
+                    <i class="fas fa-camera"></i> Capturar Foto
+                </button>
+                <button type="button" class="retake-btn" id="retake-btn" style="display: none;">
+                    <i class="fas fa-redo"></i> Nova Foto
+                </button>
+                <button type="button" class="use-photo-btn" id="use-photo-btn" style="display: none;">
+                    <i class="fas fa-check"></i> Usar Esta Foto
+                </button>
+                <button type="button" class="switch-camera-btn" id="switch-camera-btn">
+                    <i class="fas fa-sync"></i> Alternar Câmera
+                </button>
             </div>
         </div>
     </div>
-    
-    <!-- OCR Results Modal (will be created dynamically) -->
-    
+</div>
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
     
@@ -357,11 +341,9 @@
             </circle>
         </svg>
     </div>
-    
-    <!-- Application Scripts -->
-    <script src="js/config.js"></script>
+     <script src="js/config.js"></script>  
     <!-- 1. Versão original - use durante o desenvolvimento -->
-    <!-- <script src="js/script.js"></script> -->
+    <!-- <script src="js/script.js"></script> -->    
     <!-- 2. Versão modular - ative quando estiver pronto -->
     <script type="module" src="js/main.js"></script>
 </body>
