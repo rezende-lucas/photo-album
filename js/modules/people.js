@@ -390,17 +390,6 @@ export function savePerson(event) {
         photo: null // Inicializa com valor nulo
     };
     
-    // Para compatibilidade, também preenche o campo filiation com base nos campos mother e father
-    if (personData.mother || personData.father) {
-        if (personData.mother && personData.father) {
-            personData.filiation = `${personData.mother} e ${personData.father}`;
-        } else if (personData.mother) {
-            personData.filiation = personData.mother;
-        } else if (personData.father) {
-            personData.filiation = personData.father;
-        }
-    }
-    
     // Obter as fotos atuais
     const currentPhotos = typeof getCurrentPhotos === 'function' ? getCurrentPhotos() : [];
     
@@ -422,13 +411,13 @@ async function savePersonToStorage(personData) {
     const elements = getDOMElements();
     
     // Criar uma cópia do objeto para enviar ao Supabase, incluindo os novos campos
+    // IMPORTANTE: Removido o campo 'filiation' pois não existe mais na tabela
     const supabaseData = {
         name: personData.name,
         mother: personData.mother,
         father: personData.father,
         CPF: personData.CPF,
         RG: personData.RG,
-        filiation: personData.filiation,  // Para compatibilidade
         address: personData.address,
         history: personData.history,
         dob: personData.dob,
