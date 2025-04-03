@@ -1,6 +1,7 @@
 // photoManager.js - Photo gallery management for multiple photos
 
 import { showToast } from '../components/toast.js';
+import { getOCRManager, applyDataToForm } from './ocr.js';
 
 // State to track photos for the current person
 let currentPhotos = [];
@@ -85,6 +86,156 @@ export function initPhotoGallery() {
                 showToast('Aviso', 'Funcionalidade de câmera indisponível neste dispositivo.', 'warning');
             });
     }
+    
+    // Add OCR button to photo controls
+    addOCRButton();
+}
+
+/**
+ * Add OCR button to the photo controls
+ */
+function addOCRButton() {
+    const photoControls = document.querySelector('.photo-controls');
+    if (!photoControls) return;
+    
+    // Check if button already exists
+    if (document.getElementById('ocr-btn')) return;
+    
+    // Create OCR button
+    const ocrButton = document.createElement('button');
+    ocrButton.type = 'button';
+    ocrButton.className = 'photo-btn ocr-btn';
+    ocrButton.id = 'ocr-btn';
+    ocrButton.innerHTML = '<i class="fas fa-file-alt"></i> Extrair Texto';
+    ocrButton.addEventListener('click', handleOCRExtraction);
+    
+    // Add button to controls
+    photoControls.appendChild(ocrButton);
+}
+
+/**
+ * Handle OCR text extraction from selected photo
+ */
+async function handleOCRExtraction() {
+    if (currentPhotos.length === 0) {
+        showToast('Aviso', 'Adicione uma foto para extrair texto.', 'warning');
+        return;
+    }
+    
+    // Get the most recent photo (likely to be the document)
+    const photo = currentPhotos[currentPhotos.length - 1];
+    
+    // Show loading toast
+    showToast('Processando', 'Iniciando extração de texto...', 'info', 0);
+    
+    try {
+        // Get OCR manager
+        const ocrManager = getOCRManager();
+        
+        // Progress callback
+        const updateProgress = (progress, status) => {
+            document.getElementById('toast-message').textContent = 
+                `Processando OCR: ${status} (${progress}%)`;
+        };
+        
+        // Extract data from the image
+        const result = await ocrManager.extractFormData(photo.data, updateProgress);
+        
+        // Close loading toast
+        document.querySelector('.toast').remove();
+        
+        if (result.success) {
+            // Apply extracted data to the form
+            applyDataToForm(result.data, result.data.confidenceScores);
+            
+            // Show success toast
+            showToast('Sucesso', 'Texto extraído e campos preenchidos.', 'success');
+            
+            // Create a detailed results modal for review
+            showOCRResultsModal(result.data, result.originalText);
+        } else {
+            showToast('Erro', `Falha na extração: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('OCR extraction error:', error);
+        document.querySelector('.toast').remove();
+        showToast('Erro', 'Ocorreu um erro durante a extração de texto.', 'error');
+    }
+}
+
+/**
+ * Show a modal with the OCR results for review
+ * @param {Object} data - Extracted data fields
+ * @param {string} originalText - The original raw extracted text
+ */
+function showOCRResultsModal(data, originalText) {
+    // Create modal element
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.className = 'modal-backdrop';
+    modalBackdrop.id = 'ocr-results-modal';
+    
+    // Create modal HTML structure
+    modalBackdrop.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">
+                        <i class="fas fa-file-alt"></i> Resultados da Extração de Texto
+                    </h2>
+                    <div class="modal-subtitle">Revise os dados extraídos</div>
+                </div>
+                <button class="close-btn" id="close-ocr-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="ocr-results-container">
+                    <div class="ocr-extracted-fields">
+                        <h3>Dados Extraídos</h3>
+                        <div class="ocr-field-list">
+                            ${Object.entries(data)
+                                .filter(([key]) => key !== 'confidenceScores')
+                                .map(([key, value]) => {
+                                    if (!value) return '';
+                                    const confidence = data.confidenceScores && data.confidenceScores[key] 
+                                        ? data.confidenceScores[key] 
+                                        : 'low';
+                                    return `
+                                        <div class="ocr-field ${confidence}-confidence">
+                                            <div class="ocr-field-label">${key}:</div>
+                                            <div class="ocr-field-value">${value}</div>
+                                            <div class="ocr-confidence-indicator" title="Confiança: ${confidence}">
+                                                <i class="fas fa-${confidence === 'high' ? 'check-circle' : confidence === 'medium' ? 'question-circle' : 'exclamation-circle'}"></i>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')
+                            }
+                        </div>
+                    </div>
+                    <div class="ocr-original-text">
+                        <h3>Texto Original Extraído</h3>
+                        <pre>${originalText}</pre>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="secondary-btn" id="ocr-dismiss-btn">Fechar</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to document
+    document.body.appendChild(modalBackdrop);
+    
+    // Set up event handlers
+    document.getElementById('close-ocr-modal').addEventListener('click', () => {
+        modalBackdrop.remove();
+    });
+    
+    document.getElementById('ocr-dismiss-btn').addEventListener('click', () => {
+        modalBackdrop.remove();
+    });
 }
 
 /**
@@ -148,9 +299,14 @@ function addPhotoToGallery(imageData) {
     photoElement.dataset.id = photoId;
     photoElement.innerHTML = `
         <img src="${imageData}" alt="Preview">
-        <button class="photo-remove" title="Remover foto">
-            <i class="fas fa-times"></i>
-        </button>
+        <div class="photo-actions">
+            <button class="photo-action photo-ocr" title="Extrair texto desta imagem">
+                <i class="fas fa-text-height"></i>
+            </button>
+            <button class="photo-remove" title="Remover foto">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     `;
     
     // Add removal functionality
@@ -166,6 +322,53 @@ function addPhotoToGallery(imageData) {
             // Show placeholder if no photos left
             if (currentPhotos.length === 0 && photoPlaceholder) {
                 photoPlaceholder.style.display = 'flex';
+            }
+        });
+    }
+    
+    // Add OCR functionality for this specific photo
+    const ocrBtn = photoElement.querySelector('.photo-ocr');
+    if (ocrBtn) {
+        ocrBtn.addEventListener('click', async () => {
+            // Find the photo data
+            const photo = currentPhotos.find(p => p.id === photoId);
+            if (!photo) return;
+            
+            // Show loading toast
+            showToast('Processando', 'Iniciando extração de texto...', 'info', 0);
+            
+            try {
+                // Get OCR manager
+                const ocrManager = getOCRManager();
+                
+                // Progress callback
+                const updateProgress = (progress, status) => {
+                    document.getElementById('toast-message').textContent = 
+                        `Processando OCR: ${status} (${progress}%)`;
+                };
+                
+                // Extract data from the image
+                const result = await ocrManager.extractFormData(photo.data, updateProgress);
+                
+                // Close loading toast
+                document.querySelector('.toast').remove();
+                
+                if (result.success) {
+                    // Apply extracted data to the form
+                    applyDataToForm(result.data, result.data.confidenceScores);
+                    
+                    // Show success toast
+                    showToast('Sucesso', 'Texto extraído e campos preenchidos.', 'success');
+                    
+                    // Create a detailed results modal for review
+                    showOCRResultsModal(result.data, result.originalText);
+                } else {
+                    showToast('Erro', `Falha na extração: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('OCR extraction error:', error);
+                document.querySelector('.toast').remove();
+                showToast('Erro', 'Ocorreu um erro durante a extração de texto.', 'error');
             }
         });
     }
