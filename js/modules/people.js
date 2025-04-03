@@ -69,9 +69,9 @@ export function openPersonDetails(id) {
             <div class="modal-stamp">CATALOGADO</div>
           </div>`;
     
-    // Utiliza os novos campos mother e father, com fallback para filiation
-    const motherInfo = person.mother || (person.filiation ? person.filiation.split(' e ')[0] : '');
-    const fatherInfo = person.father || (person.filiation && person.filiation.includes(' e ') ? person.filiation.split(' e ')[1] : '');
+    // Utiliza os novos campos mother e father
+    const motherInfo = person.mother || '';
+    const fatherInfo = person.father || '';
     
     elements.personDetails.innerHTML = `
         ${photoGalleryHTML}
@@ -244,21 +244,14 @@ export function openEditForm(id) {
     if (nameInput) nameInput.value = person.name || '';
     
     // Lidar com os novos campos (mãe, pai, CPF e RG)
-    // Para compatibilidade com dados antigos, usamos filiation se necessário
-    
     const motherInput = document.getElementById('mother');
     if (motherInput) {
-        // Se tiver mother, usa. Senão, tenta extrair da filiation
-        motherInput.value = person.mother || 
-            (person.filiation ? person.filiation.split(' e ')[0].trim() : '');
+        motherInput.value = person.mother || '';
     }
     
     const fatherInput = document.getElementById('father');
     if (fatherInput) {
-        // Se tiver father, usa. Senão, tenta extrair da filiation
-        fatherInput.value = person.father || 
-            (person.filiation && person.filiation.includes(' e ') ? 
-             person.filiation.split(' e ')[1].trim() : '');
+        fatherInput.value = person.father || '';
     }
     
     const cpfInput = document.getElementById('CPF');
@@ -411,7 +404,7 @@ async function savePersonToStorage(personData) {
     const elements = getDOMElements();
     
     // Criar uma cópia do objeto para enviar ao Supabase, incluindo os novos campos
-    // IMPORTANTE: Removido o campo 'filiation' pois não existe mais na tabela
+    // IMPORTANTE: Não incluímos o campo 'filiation' pois não existe mais na tabela
     const supabaseData = {
         name: personData.name,
         mother: personData.mother,
@@ -559,8 +552,6 @@ export function searchPeople(query) {
             (person.father && person.father.toLowerCase().includes(lowerQuery)) ||
             (person.CPF && person.CPF.toLowerCase().includes(lowerQuery)) ||
             (person.RG && person.RG.toLowerCase().includes(lowerQuery)) ||
-            // Mantém a pesquisa no campo filiation para compatibilidade
-            (person.filiation && person.filiation.toLowerCase().includes(lowerQuery)) ||
             (person.address && person.address.toLowerCase().includes(lowerQuery)) ||
             (person.history && person.history.toLowerCase().includes(lowerQuery)) ||
             (person.email && person.email.toLowerCase().includes(lowerQuery)) ||
