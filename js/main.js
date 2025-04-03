@@ -35,6 +35,44 @@ export function setState(newState) {
     Object.assign(state, newState);
 }
 
+/**
+ * Migra dados dos campos antigos para os novos (filiation -> mother/father)
+ * @param {Array} peopleArray - Lista de pessoas para migrar
+ * @returns {Array} Lista de pessoas migrada
+ */
+function migrateData(peopleArray) {
+    return peopleArray.map(person => {
+        // Se já tem os novos campos, mantém como está
+        if (person.mother || person.father) {
+            return person;
+        }
+        
+        // Verifica se tem o campo filiation para migrar
+        if (person.filiation) {
+            // Tenta dividir o campo filiation em mother e father
+            const parts = person.filiation.split(/\s+e\s+|\s+E\s+|,\s*|\s+[eE]\s+/);
+            
+            if (parts.length >= 2) {
+                person.mother = parts[0].trim();
+                person.father = parts[1].trim();
+            } else {
+                // Se não conseguir dividir, coloca tudo no campo mother
+                person.mother = person.filiation;
+                person.father = '';
+            }
+        } else {
+            person.mother = '';
+            person.father = '';
+        }
+        
+        // Inicializa campos CPF e RG se não existirem
+        if (!person.CPF) person.CPF = '';
+        if (!person.RG) person.RG = '';
+        
+        return person;
+    });
+}
+
 // Inicialização da aplicação
 async function init() {
     try {
@@ -74,23 +112,24 @@ async function init() {
             // Migrar dados antigos para o novo formato
             state.people = state.people.map(person => {
                 // Se já existe uma estrutura para fotos múltiplas, manter
-                if (person.localPhotos) {
-                    return person;
-                }
-                
-                // Caso contrário, criar estrutura
-                if (person.photo) {
-                    person.localPhotos = [{
-                        id: 'legacy',
-                        data: person.photo,
-                        dateAdded: new Date().toISOString()
-                    }];
-                } else {
-                    person.localPhotos = [];
+                if (!person.localPhotos) {
+                    // Caso contrário, criar estrutura
+                    if (person.photo) {
+                        person.localPhotos = [{
+                            id: 'legacy',
+                            data: person.photo,
+                            dateAdded: new Date().toISOString()
+                        }];
+                    } else {
+                        person.localPhotos = [];
+                    }
                 }
                 
                 return person;
             });
+            
+            // Migrar dados de filiation para os novos campos mother e father
+            state.people = migrateData(state.people);
             
             renderPeople();
         } catch (error) {
@@ -100,6 +139,10 @@ async function init() {
             if (localData) {
                 try {
                     state.people = JSON.parse(localData);
+                    
+                    // Migrar dados de filiation para os novos campos mother e father
+                    state.people = migrateData(state.people);
+                    
                     renderPeople();
                 } catch (parseError) {
                     console.error('Falha ao analisar dados locais:', parseError);
