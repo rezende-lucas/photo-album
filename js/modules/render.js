@@ -30,15 +30,13 @@ function getPlaceholderImage(width = 400, height = 320) {
  * @returns {string} Texto formatado com informações de filiação
  */
 function formatFiliation(person) {
-    // Prioriza os novos campos, mas tem fallback para filiation
+    // Formata baseado nos campos mother e father
     if (person.mother && person.father) {
         return `${person.mother} e ${person.father}`;
     } else if (person.mother) {
         return person.mother;
     } else if (person.father) {
         return person.father;
-    } else if (person.filiation) {
-        return person.filiation;
     } else {
         return 'Sem informação de filiação';
     }
