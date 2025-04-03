@@ -22,8 +22,10 @@ function isGitHubPages() {
  * @returns {string} URL da imagem placeholder
  */
 function getPlaceholderImage(width = 400, height = 320) {
+    // Use a API local para placeholders quando não estiver no GitHub Pages
+    // e use um serviço confiável quando estiver em produção
     return isGitHubPages() 
-        ? `https://via.placeholder.com/${width}x${height}` 
+        ? `https://placehold.co/${width}x${height}` 
         : `/api/placeholder/${width}/${height}`;
 }
 
@@ -51,9 +53,12 @@ export function openPersonDetails(id) {
     elements.personIdElement.textContent = `REG-ID: ${generateRegistrationId(person.id)}`;
     
     // Create photo gallery HTML based on available photos
-    const photoGalleryHTML = person.photos && person.photos.length > 0
+    // Aqui gerenciamos fotos apenas localmente para exibição
+    const localPhotos = person.localPhotos || [];
+    
+    const photoGalleryHTML = localPhotos.length > 0
         ? `<div class="modal-photos-gallery">
-            ${person.photos.map(photo => `
+            ${localPhotos.map(photo => `
                 <div class="modal-photo-item">
                     <img src="${photo.data}" alt="${person.name}">
                 </div>
@@ -190,34 +195,55 @@ export function openEditForm(id) {
     
     if (!person) return;
     
-    document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Editar Registro';
+    const formTitle = document.getElementById('form-title');
+    if (formTitle) {
+        formTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Registro';
+    }
     
     // Fill form with person data
-    document.getElementById('name').value = person.name || '';
-    document.getElementById('filiation').value = person.filiation || '';
-    document.getElementById('address').value = person.address || '';
-    document.getElementById('history').value = person.history || '';
-    document.getElementById('dob').value = person.dob || '';
-    document.getElementById('phone').value = person.phone || '';
-    document.getElementById('email').value = person.email || '';
+    const nameInput = document.getElementById('name');
+    if (nameInput) nameInput.value = person.name || '';
     
-    // Set up photo gallery with existing photos
-    if (person.photos && person.photos.length > 0) {
-        setExistingPhotos(person.photos);
-    } else if (person.photo) {
-        // Handle legacy data with single photo
-        setExistingPhotos([{
-            id: 'legacy',
-            data: person.photo,
-            dateAdded: new Date().toISOString()
-        }]);
-    } else {
-        setExistingPhotos([]);
+    const filiationInput = document.getElementById('filiation');
+    if (filiationInput) filiationInput.value = person.filiation || '';
+    
+    const addressInput = document.getElementById('address');
+    if (addressInput) addressInput.value = person.address || '';
+    
+    const historyInput = document.getElementById('history');
+    if (historyInput) historyInput.value = person.history || '';
+    
+    const dobInput = document.getElementById('dob');
+    if (dobInput) dobInput.value = person.dob || '';
+    
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) phoneInput.value = person.phone || '';
+    
+    const emailInput = document.getElementById('email');
+    if (emailInput) emailInput.value = person.email || '';
+    
+    // Set up photo gallery with existing photos (apenas localmente)
+    if (typeof setExistingPhotos === 'function') {
+        if (person.localPhotos && person.localPhotos.length > 0) {
+            setExistingPhotos(person.localPhotos);
+        } else if (person.photo) {
+            // Handle legacy data with single photo
+            setExistingPhotos([{
+                id: 'legacy',
+                data: person.photo,
+                dateAdded: new Date().toISOString()
+            }]);
+        } else {
+            setExistingPhotos([]);
+        }
     }
     
     state.currentPersonId = id;
-    elements.formModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    
+    if (elements.formModal) {
+        elements.formModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 /**
@@ -282,6 +308,11 @@ export function savePerson(event) {
     event.preventDefault();
     const elements = getDOMElements();
     
+    if (!elements.personForm) {
+        console.error('Formulário não encontrado');
+        return;
+    }
+    
     const formData = new FormData(elements.personForm);
     
     const personData = {
@@ -292,14 +323,19 @@ export function savePerson(event) {
         dob: emptyToNull(formData.get('dob')),
         phone: emptyToNull(formData.get('phone')),
         email: emptyToNull(formData.get('email')),
-        // Use the new photos array
-        photos: getCurrentPhotos()
+        photo: null // Inicializa com valor nulo
     };
     
-    // For backward compatibility, set the first photo as the main photo
-    if (personData.photos && personData.photos.length > 0) {
-        personData.photo = personData.photos[0].data;
+    // Obter as fotos atuais
+    const currentPhotos = typeof getCurrentPhotos === 'function' ? getCurrentPhotos() : [];
+    
+    // Para compatibilidade com o Supabase, definir a primeira foto como a foto principal
+    if (currentPhotos && currentPhotos.length > 0) {
+        personData.photo = currentPhotos[0].data;
     }
+    
+    // Armazenar fotos localmente (sem enviar ao Supabase)
+    personData.localPhotos = currentPhotos;
     
     savePersonToStorage(personData);
 }
@@ -309,17 +345,30 @@ export function savePerson(event) {
  */
 async function savePersonToStorage(personData) {
     const elements = getDOMElements();
+    
+    // Criar uma cópia do objeto para enviar ao Supabase, excluindo propriedades não existentes na tabela
+    const supabaseData = {
+        name: personData.name,
+        filiation: personData.filiation,
+        address: personData.address,
+        history: personData.history,
+        dob: personData.dob,
+        phone: personData.phone,
+        email: personData.email,
+        photo: personData.photo
+    };
+    
     try {
         if (state.currentPersonId) {
             // Atualizar pessoa existente
             const { error } = await state.supabaseClient
                 .from('people')
-                .update(personData)
+                .update(supabaseData)
                 .eq('id', state.currentPersonId);
                 
             if (error) throw error;
             
-            // Atualizar no array local
+            // Atualizar no array local - incluindo fotos
             const index = state.people.findIndex(p => p.id === state.currentPersonId);
             if (index !== -1) {
                 personData.id = state.currentPersonId;
@@ -331,7 +380,7 @@ async function savePersonToStorage(personData) {
             // Adicionar nova pessoa ao Supabase
             const { data, error } = await state.supabaseClient
                 .from('people')
-                .insert(personData)
+                .insert(supabaseData)
                 .select();
                 
             if (error) throw error;
@@ -347,8 +396,10 @@ async function savePersonToStorage(personData) {
         // Atualizar localStorage como backup
         localStorage.setItem('albumPeople', JSON.stringify(state.people));
         
-        elements.formModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        if (elements.formModal) {
+            elements.formModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
         renderPeople();
     } catch (error) {
         console.error('Erro ao salvar no Supabase:', error);
@@ -367,8 +418,11 @@ async function savePersonToStorage(personData) {
         }
         
         localStorage.setItem('albumPeople', JSON.stringify(state.people));
-        elements.formModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        
+        if (elements.formModal) {
+            elements.formModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
         renderPeople();
     }
 }
@@ -394,8 +448,10 @@ export async function deletePerson(id) {
             // Atualizar localStorage como backup
             localStorage.setItem('albumPeople', JSON.stringify(state.people));
             
-            elements.personModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
+            if (elements.personModal) {
+                elements.personModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
             renderPeople();
             
             showToast('Registro Excluído', 'Indivíduo removido permanentemente do sistema.', 'success');
@@ -406,8 +462,11 @@ export async function deletePerson(id) {
             // Fallback para exclusão local
             state.people = state.people.filter(p => p.id !== id);
             localStorage.setItem('albumPeople', JSON.stringify(state.people));
-            elements.personModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
+            
+            if (elements.personModal) {
+                elements.personModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
             renderPeople();
         }
     }
