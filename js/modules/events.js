@@ -30,59 +30,73 @@ function resolveModulePath(modulePath) {
 export function setupEventListeners() {
     const elements = getDOMElements();
     
-    // Toggle de tema
-    elements.themeToggle.addEventListener('click', () => {
-        setState({ isDarkMode: toggleDarkMode() });
-    });
-    
-    // Toggle de menu para mobile
-    elements.menuToggle.addEventListener('click', toggleSidebar);
-    
-    // Botões de alternância de visualização
-    elements.gridViewBtn.addEventListener('click', () => {
-        setState({ currentView: 'grid' });
-        elements.gridViewBtn.classList.add('active');
-        elements.listViewBtn.classList.remove('active');
-        updateSidebarActive('grid');
-        renderPeople();
-    });
-    
-    elements.listViewBtn.addEventListener('click', () => {
-        setState({ currentView: 'list' });
-        elements.listViewBtn.classList.add('active');
-        elements.gridViewBtn.classList.remove('active');
-        updateSidebarActive('list');
-        renderPeople();
-    });
-    
-    // Botões da barra lateral
-    elements.sidebarBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const view = this.dataset.view;
-            
-            if (view) {
-                // Botões de visualização
-                setState({ currentView: view });
-                updateSidebarActive(view);
-                
-                // Atualizar botões principais
-                if (view === 'grid') {
-                    elements.gridViewBtn.classList.add('active');
-                    elements.listViewBtn.classList.remove('active');
-                } else {
-                    elements.listViewBtn.classList.add('active');
-                    elements.gridViewBtn.classList.remove('active');
-                }
-                
-                renderPeople();
-            }
+    // Verificar se cada elemento existe antes de adicionar eventos
+    if (elements.themeToggle) {
+        elements.themeToggle.addEventListener('click', () => {
+            setState({ isDarkMode: toggleDarkMode() });
         });
-    });
+    }
     
-    // Botões para adicionar pessoa
-    elements.addPersonBtn.addEventListener('click', openAddForm);
-    elements.sidebarAddBtn.addEventListener('click', openAddForm);
-    elements.emptyAddBtn.addEventListener('click', openAddForm);
+    if (elements.menuToggle) {
+        elements.menuToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    if (elements.gridViewBtn) {
+        elements.gridViewBtn.addEventListener('click', () => {
+            setState({ currentView: 'grid' });
+            elements.gridViewBtn.classList.add('active');
+            if (elements.listViewBtn) elements.listViewBtn.classList.remove('active');
+            updateSidebarActive('grid');
+            renderPeople();
+        });
+    }
+    
+    if (elements.listViewBtn) {
+        elements.listViewBtn.addEventListener('click', () => {
+            setState({ currentView: 'list' });
+            elements.listViewBtn.classList.add('active');
+            if (elements.gridViewBtn) elements.gridViewBtn.classList.remove('active');
+            updateSidebarActive('list');
+            renderPeople();
+        });
+    }
+    
+    // Sidebarbtns - verificar se existe e é um array
+    if (elements.sidebarBtns && elements.sidebarBtns.forEach) {
+        elements.sidebarBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.dataset.view;
+                
+                if (view) {
+                    setState({ currentView: view });
+                    updateSidebarActive(view);
+                    
+                    if (view === 'grid') {
+                        if (elements.gridViewBtn) elements.gridViewBtn.classList.add('active');
+                        if (elements.listViewBtn) elements.listViewBtn.classList.remove('active');
+                    } else {
+                        if (elements.listViewBtn) elements.listViewBtn.classList.add('active');
+                        if (elements.gridViewBtn) elements.gridViewBtn.classList.remove('active');
+                    }
+                    
+                    renderPeople();
+                }
+            });
+        });
+    }
+    
+    // Botões de adição de pessoa
+    if (elements.addPersonBtn) {
+        elements.addPersonBtn.addEventListener('click', openAddForm);
+    }
+    
+    if (elements.sidebarAddBtn) {
+        elements.sidebarAddBtn.addEventListener('click', openAddForm);
+    }
+    
+    if (elements.emptyAddBtn) {
+        elements.emptyAddBtn.addEventListener('click', openAddForm);
+    }
     
     // Fechar modais
     elements.closePersonModal.addEventListener('click', () => {
