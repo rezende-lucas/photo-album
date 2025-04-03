@@ -25,6 +25,26 @@ function getPlaceholderImage(width = 400, height = 320) {
 }
 
 /**
+ * Função auxiliar para formatar informações de filiação
+ * @param {Object} person - Dados da pessoa
+ * @returns {string} Texto formatado com informações de filiação
+ */
+function formatFiliation(person) {
+    // Prioriza os novos campos, mas tem fallback para filiation
+    if (person.mother && person.father) {
+        return `${person.mother} e ${person.father}`;
+    } else if (person.mother) {
+        return person.mother;
+    } else if (person.father) {
+        return person.father;
+    } else if (person.filiation) {
+        return person.filiation;
+    } else {
+        return 'Sem informação de filiação';
+    }
+}
+
+/**
  * Renderiza pessoas na visualização atual
  */
 export function renderPeople(filteredPeople = null) {
@@ -84,7 +104,8 @@ export function renderGridView(peopleArray) {
         card.dataset.id = person.id;
         card.style.animationDelay = `${index * 0.05}s`;
         
-        // Removendo a geração de tags aleatórias (LIBERADO, etc)
+        // Formatação de filiação usando a nova função auxiliar
+        const filiationText = formatFiliation(person);
         
         card.innerHTML = `
             <div class="card-img">
@@ -97,7 +118,7 @@ export function renderGridView(peopleArray) {
                 </h3>
                 <p class="person-info">
                     <i class="fas fa-user-friends info-icon"></i> 
-                    ${person.filiation || 'Sem informação de filiação'}
+                    ${filiationText}
                 </p>
                 <p class="person-info">
                     <i class="fas fa-map-marker-alt info-icon"></i> 
@@ -146,11 +167,24 @@ export function renderListView(peopleArray) {
         const photoIndicator = additionalPhotos > 0 
             ? `<div class="photo-counter">+${additionalPhotos}</div>` 
             : '';
+        
+        // Formatação de filiação usando a nova função auxiliar
+        const filiationText = formatFiliation(person);
             
         const listItem = document.createElement('div');
         listItem.className = 'list-item fade-in';
         listItem.dataset.id = person.id;
         listItem.style.animationDelay = `${index * 0.05}s`;
+        
+        // Adiciona informações de CPF/RG se disponíveis
+        const identificationInfo = person.CPF || person.RG ? `
+            <p class="person-info">
+                <i class="fas fa-id-card info-icon"></i> 
+                ${person.CPF ? `CPF: ${person.CPF}` : ''}
+                ${person.CPF && person.RG ? ' | ' : ''}
+                ${person.RG ? `RG: ${person.RG}` : ''}
+            </p>
+        ` : '';
         
         listItem.innerHTML = `
             <div class="list-img">
@@ -161,8 +195,9 @@ export function renderListView(peopleArray) {
                 <h3 class="person-name">${person.name}</h3>
                 <p class="person-info">
                     <i class="fas fa-user-friends info-icon"></i> 
-                    ${person.filiation || 'Sem informação de filiação'}
+                    ${filiationText}
                 </p>
+                ${identificationInfo}
                 <p class="person-info">
                     <i class="fas fa-map-marker-alt info-icon"></i> 
                     ${formatAddress(person.address)}
