@@ -22,16 +22,18 @@ class OCRManager {
         if (this.isInitialized) return Promise.resolve();
 
         try {
-            // Dynamic import of Tesseract.js
-            const { createWorker } = await import('https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js');
+            // Access Tesseract from the global window object
+            // This assumes Tesseract.js is loaded via a <script> tag
+            if (!window.Tesseract) {
+                throw new Error('Tesseract.js library not found. Make sure it is properly loaded in the page.');
+            }
             
             // Create and initialize the worker
-            this.tesseract = createWorker({
+            this.tesseract = await window.Tesseract.createWorker({
                 // Portuguese language for Brazilian documents
                 logger: m => this.updateProgress(m),
             });
 
-            await this.tesseract.load();
             await this.tesseract.loadLanguage('por');
             await this.tesseract.initialize('por');
             
