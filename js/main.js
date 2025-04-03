@@ -39,22 +39,26 @@ export function setState(newState) {
 async function init() {
     // Verificar autenticação
     const isAuthenticated = await requireAuth();
-    if (!isAuthenticated) return; // Redireciona para login.html
+    if (!isAuthenticated) return;
     
     const elements = getDOMElements();
     
-    // Obter dados do usuário atual
+    // Verificar se elementos existem antes de usá-los
+    if (!elements.body) {
+        console.error('Elemento body não encontrado');
+        return;
+    }
+    
     const { user } = await getCurrentUser();
     setState({ currentUser: user });
     
-    // Atualizar UI com informações do usuário
     if (user && elements.userDisplayName) {
         elements.userDisplayName.textContent = user.user_metadata?.name || user.email;
     }
     
-    // Verificar tema escuro
+    // Verificar tema
     state.isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (state.isDarkMode) {
+    if (state.isDarkMode && elements.body && elements.themeToggle) {
         elements.body.classList.add('light-mode');
         elements.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
