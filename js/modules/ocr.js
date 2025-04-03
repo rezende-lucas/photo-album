@@ -8,7 +8,7 @@ import { showToast } from '../components/toast.js';
  */
 class OCRManager {
     constructor() {
-        this.tesseract = null;
+        this.worker = null;
         this.isInitialized = false;
         this.isProcessing = false;
         this.progressCallback = null;
@@ -22,20 +22,20 @@ class OCRManager {
         if (this.isInitialized) return Promise.resolve();
 
         try {
-            // Access Tesseract from the global window object
-            // This assumes Tesseract.js is loaded via a <script> tag
-            if (!window.Tesseract) {
+            if (typeof Tesseract === 'undefined') {
                 throw new Error('Tesseract.js library not found. Make sure it is properly loaded in the page.');
             }
             
-            // Create and initialize the worker
-            this.tesseract = await window.Tesseract.createWorker({
-                // Portuguese language for Brazilian documents
-                logger: m => this.updateProgress(m),
+            console.log('Iniciando OCR com Tesseract:', Tesseract);
+            
+            // Create the worker - this works with Tesseract.js v2.x
+            this.worker = await Tesseract.createWorker({
+                logger: progress => this.updateProgress(progress)
             });
-
-            await this.tesseract.loadLanguage('por');
-            await this.tesseract.initialize('por');
+            
+            // Initialize with Portuguese language
+            await this.worker.loadLanguage('por');
+            await this.worker.initialize('por');
             
             this.isInitialized = true;
             console.log('OCR engine initialized successfully');
@@ -73,7 +73,7 @@ class OCRManager {
                     progress = 50 + (progressInfo.progress * 50);
                     break;
                 default:
-                    progress = 0;
+                    progress = progressInfo.progress ? progressInfo.progress * 100 : 0;
             }
             
             this.progressCallback(Math.round(progress), progressInfo.status);
@@ -161,8 +161,8 @@ class OCRManager {
             // Preprocess the image to improve OCR accuracy
             const processedImage = await this.preprocessImage(imageData);
             
-            // Recognize text
-            const result = await this.tesseract.recognize(processedImage);
+            // Recognize text using Tesseract.js v2 API
+            const result = await this.worker.recognize(processedImage);
             
             this.isProcessing = false;
             return result.data.text;
@@ -180,6 +180,8 @@ class OCRManager {
      */
     parseExtractedText(text) {
         if (!text) return {};
+        
+        console.log('Texto extraído pelo OCR:', text);
         
         // Convert text to lowercase and normalize whitespace
         const normalizedText = text.toLowerCase().replace(/\s+/g, ' ');
@@ -333,9 +335,9 @@ class OCRManager {
      * Terminate the OCR worker when done
      */
     async terminate() {
-        if (this.tesseract && this.isInitialized) {
+        if (this.worker && this.isInitialized) {
             try {
-                await this.tesseract.terminate();
+                await this.worker.terminate();
                 this.isInitialized = false;
                 console.log('OCR engine terminated');
             } catch (error) {
