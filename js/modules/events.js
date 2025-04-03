@@ -98,36 +98,52 @@ export function setupEventListeners() {
         elements.emptyAddBtn.addEventListener('click', openAddForm);
     }
     
-    // Fechar modais
-    elements.closePersonModal.addEventListener('click', () => {
-        elements.personModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+    // Fechar modais - verificar se os elementos existem antes de adicionar eventos
+    if (elements.closePersonModal) {
+        elements.closePersonModal.addEventListener('click', () => {
+            if (elements.personModal) {
+                elements.personModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
     
-    elements.closeFormModal.addEventListener('click', () => {
-        elements.formModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+    if (elements.closeFormModal) {
+        elements.closeFormModal.addEventListener('click', () => {
+            if (elements.formModal) {
+                elements.formModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
     
-    elements.cancelForm.addEventListener('click', () => {
-        elements.formModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+    if (elements.cancelForm) {
+        elements.cancelForm.addEventListener('click', () => {
+            if (elements.formModal) {
+                elements.formModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
     
-    // Cliques em cards/itens de lista
-    elements.photoGrid.addEventListener('click', (e) => {
-        const card = e.target.closest('.person-card');
-        if (card && !e.target.closest('.card-btn')) {
-            openPersonDetails(card.dataset.id);
-        }
-    });
+    // Cliques em cards/itens de lista - verificar se os elementos existem
+    if (elements.photoGrid) {
+        elements.photoGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.person-card');
+            if (card && !e.target.closest('.card-btn')) {
+                openPersonDetails(card.dataset.id);
+            }
+        });
+    }
     
-    elements.photoList.addEventListener('click', (e) => {
-        const listItem = e.target.closest('.list-item');
-        if (listItem && !e.target.closest('.list-btn')) {
-            openPersonDetails(listItem.dataset.id);
-        }
-    });
+    if (elements.photoList) {
+        elements.photoList.addEventListener('click', (e) => {
+            const listItem = e.target.closest('.list-item');
+            if (listItem && !e.target.closest('.list-btn')) {
+                openPersonDetails(listItem.dataset.id);
+            }
+        });
+    }
     
     // Event delegation para botões de edição e exclusão
     document.addEventListener('click', (e) => {
@@ -144,38 +160,48 @@ export function setupEventListeners() {
         }
     });
     
-    // Envio do formulário
-    elements.personForm.addEventListener('submit', savePerson);
+    // Envio do formulário - verificar se o elemento existe
+    if (elements.personForm) {
+        elements.personForm.addEventListener('submit', savePerson);
+    }
     
-    // Alteração do input de arquivo
-    elements.fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            elements.fileName.textContent = file.name;
-        } else {
-            elements.fileName.textContent = '';
-        }
-    });
+    // Alteração do input de arquivo - verificar se os elementos existem
+    if (elements.fileInput) {
+        elements.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && elements.fileName) {
+                elements.fileName.textContent = file.name;
+            } else if (elements.fileName) {
+                elements.fileName.textContent = '';
+            }
+        });
+    }
     
-    // Input de pesquisa
-    elements.searchInput.addEventListener('input', (e) => {
-        searchPeople(e.target.value);
-    });
+    // Input de pesquisa - verificar se o elemento existe
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener('input', (e) => {
+            searchPeople(e.target.value);
+        });
+    }
     
-    // Fechar modais ao clicar fora
-    elements.personModal.addEventListener('click', (e) => {
-        if (e.target === elements.personModal) {
-            elements.personModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-    });
+    // Fechar modais ao clicar fora - verificar se os elementos existem
+    if (elements.personModal) {
+        elements.personModal.addEventListener('click', (e) => {
+            if (e.target === elements.personModal) {
+                elements.personModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
     
-    elements.formModal.addEventListener('click', (e) => {
-        if (e.target === elements.formModal) {
-            elements.formModal.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-    });
+    if (elements.formModal) {
+        elements.formModal.addEventListener('click', (e) => {
+            if (e.target === elements.formModal) {
+                elements.formModal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
     
     // Event listeners para detalhes da pessoa
     document.addEventListener('click', (e) => {
@@ -185,7 +211,9 @@ export function setupEventListeners() {
             
             if (editBtn) {
                 const id = editBtn.dataset.id;
-                elements.closePersonModal.click();
+                if (elements.closePersonModal) {
+                    elements.closePersonModal.click();
+                }
                 openEditForm(id);
             } else if (deleteBtn) {
                 const id = deleteBtn.dataset.id;
@@ -194,7 +222,7 @@ export function setupEventListeners() {
         }
     });
     
-    // User dropdown toggle
+    // User dropdown toggle - verificar se o elemento existe
     if (elements.userDropdownToggle) {
         elements.userDropdownToggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -212,7 +240,7 @@ export function setupEventListeners() {
         });
     }
     
-    // Logout button
+    // Logout button - verificar se o elemento existe
     if (elements.logoutBtn) {
         elements.logoutBtn.addEventListener('click', async () => {
             try {
