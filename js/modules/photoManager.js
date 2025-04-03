@@ -33,7 +33,7 @@ function resolveModulePath(modulePath) {
  */
 function getPlaceholderImage(width = 400, height = 320) {
     return isGitHubPages() 
-        ? `https://via.placeholder.com/${width}x${height}` 
+        ? `https://placehold.co/${width}x${height}` 
         : `/api/placeholder/${width}/${height}`;
 }
 
@@ -65,18 +65,23 @@ export function initPhotoGallery() {
         import(cameraModulePath)
             .then(({ getCameraManager }) => {
                 cameraBtn.addEventListener('click', () => {
-                    const cameraManager = getCameraManager();
-                    
-                    // Open camera with callback to process the photo
-                    cameraManager.openCamera((imageData) => {
-                        // Add the captured photo to our collection
-                        addPhotoToGallery(imageData);
-                    });
+                    try {
+                        const cameraManager = getCameraManager();
+                        
+                        // Open camera with callback to process the photo
+                        cameraManager.openCamera((imageData) => {
+                            // Add the captured photo to our collection
+                            addPhotoToGallery(imageData);
+                        });
+                    } catch (error) {
+                        console.error('Erro ao inicializar câmera:', error);
+                        showToast('Erro', 'Não foi possível inicializar a câmera.', 'error');
+                    }
                 });
             })
             .catch(error => {
                 console.error('Error loading camera module:', error);
-                cameraBtn.style.display = 'none';
+                if (cameraBtn) cameraBtn.style.display = 'none';
                 showToast('Aviso', 'Funcionalidade de câmera indisponível neste dispositivo.', 'warning');
             });
     }
@@ -117,6 +122,11 @@ function addPhotoToGallery(imageData) {
     const photosGallery = document.getElementById('photos-gallery');
     const photoPlaceholder = document.getElementById('photo-placeholder');
     
+    if (!photosGallery) {
+        console.error('Elemento da galeria de fotos não encontrado');
+        return;
+    }
+    
     // Hide placeholder when we have photos
     if (photoPlaceholder) {
         photoPlaceholder.style.display = 'none';
@@ -145,18 +155,20 @@ function addPhotoToGallery(imageData) {
     
     // Add removal functionality
     const removeBtn = photoElement.querySelector('.photo-remove');
-    removeBtn.addEventListener('click', () => {
-        // Remove from state
-        currentPhotos = currentPhotos.filter(photo => photo.id !== photoId);
-        
-        // Remove preview
-        photoElement.remove();
-        
-        // Show placeholder if no photos left
-        if (currentPhotos.length === 0 && photoPlaceholder) {
-            photoPlaceholder.style.display = 'flex';
-        }
-    });
+    if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+            // Remove from state
+            currentPhotos = currentPhotos.filter(photo => photo.id !== photoId);
+            
+            // Remove preview
+            photoElement.remove();
+            
+            // Show placeholder if no photos left
+            if (currentPhotos.length === 0 && photoPlaceholder) {
+                photoPlaceholder.style.display = 'flex';
+            }
+        });
+    }
     
     // Add to DOM
     photosGallery.appendChild(photoElement);
@@ -173,30 +185,40 @@ export function setExistingPhotos(photos) {
     const photosGallery = document.getElementById('photos-gallery');
     const photoPlaceholder = document.getElementById('photo-placeholder');
     
-    if (photosGallery) {
-        // Keep only the placeholder
-        const newPlaceholder = photoPlaceholder.cloneNode(true);
-        photosGallery.innerHTML = '';
-        photosGallery.appendChild(newPlaceholder);
-    }
-    
-    // If no photos, show placeholder and return
-    if (!photos || photos.length === 0) {
-        if (photoPlaceholder) {
-            photoPlaceholder.style.display = 'flex';
-        }
+    if (!photosGallery || !photoPlaceholder) {
+        console.error('Elementos da galeria não encontrados');
         return;
     }
     
-    // Hide placeholder
-    if (photoPlaceholder) {
+    try {
+        // Clone the placeholder to make sure we don't lose it
+        const newPlaceholder = photoPlaceholder.cloneNode(true);
+        
+        // Clear the gallery
+        photosGallery.innerHTML = '';
+        
+        // Add the placeholder back
+        photosGallery.appendChild(newPlaceholder);
+        
+        // If no photos, show placeholder and return
+        if (!photos || photos.length === 0) {
+            photoPlaceholder.style.display = 'flex';
+            return;
+        }
+        
+        // Hide placeholder
         photoPlaceholder.style.display = 'none';
+        
+        // Add each photo to the gallery
+        photos.forEach(photo => {
+            if (photo && photo.data) {
+                addPhotoToGallery(photo.data);
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao configurar fotos existentes:', error);
+        photoPlaceholder.style.display = 'flex';
     }
-    
-    // Add each photo to the gallery
-    photos.forEach(photo => {
-        addPhotoToGallery(photo.data);
-    });
 }
 
 /**
