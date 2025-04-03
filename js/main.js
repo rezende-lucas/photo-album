@@ -42,34 +42,35 @@ export function setState(newState) {
  */
 function migrateData(peopleArray) {
     return peopleArray.map(person => {
-        // Se já tem os novos campos, mantém como está
-        if (person.mother || person.father) {
-            return person;
-        }
+        // Verificar se já existe um objeto para preservar seus dados
+        const updatedPerson = { ...person };
         
-        // Verifica se tem o campo filiation para migrar
-        if (person.filiation) {
-            // Tenta dividir o campo filiation em mother e father
-            const parts = person.filiation.split(/\s+e\s+|\s+E\s+|,\s*|\s+[eE]\s+/);
-            
-            if (parts.length >= 2) {
-                person.mother = parts[0].trim();
-                person.father = parts[1].trim();
+        // Se já tem os novos campos, mantém como está
+        if (!updatedPerson.mother && !updatedPerson.father) {
+            // Verifica se tem o campo filiation para migrar
+            if (updatedPerson.filiation) {
+                // Tenta dividir o campo filiation em mother e father
+                const parts = updatedPerson.filiation.split(/\s+e\s+|\s+E\s+|,\s*|\s+[eE]\s+/);
+                
+                if (parts.length >= 2) {
+                    updatedPerson.mother = parts[0].trim();
+                    updatedPerson.father = parts[1].trim();
+                } else {
+                    // Se não conseguir dividir, coloca tudo no campo mother
+                    updatedPerson.mother = updatedPerson.filiation;
+                    updatedPerson.father = '';
+                }
             } else {
-                // Se não conseguir dividir, coloca tudo no campo mother
-                person.mother = person.filiation;
-                person.father = '';
+                updatedPerson.mother = '';
+                updatedPerson.father = '';
             }
-        } else {
-            person.mother = '';
-            person.father = '';
         }
         
         // Inicializa campos CPF e RG se não existirem
-        if (!person.CPF) person.CPF = '';
-        if (!person.RG) person.RG = '';
+        if (!updatedPerson.CPF) updatedPerson.CPF = '';
+        if (!updatedPerson.RG) updatedPerson.RG = '';
         
-        return person;
+        return updatedPerson;
     });
 }
 
@@ -109,7 +110,7 @@ async function init() {
         try {
             state.people = await loadPeopleFromDB(state.supabaseClient);
             
-            // Migrar dados antigos para o novo formato
+            // Migrar dados antigos para o novo formato de fotos
             state.people = state.people.map(person => {
                 // Se já existe uma estrutura para fotos múltiplas, manter
                 if (!person.localPhotos) {
@@ -131,6 +132,9 @@ async function init() {
             // Migrar dados de filiation para os novos campos mother e father
             state.people = migrateData(state.people);
             
+            // Salvar os dados migrados de volta no localStorage para backup
+            localStorage.setItem('albumPeople', JSON.stringify(state.people));
+            
             renderPeople();
         } catch (error) {
             console.error('Falha ao carregar dados:', error);
@@ -142,6 +146,9 @@ async function init() {
                     
                     // Migrar dados de filiation para os novos campos mother e father
                     state.people = migrateData(state.people);
+                    
+                    // Salvar os dados migrados de volta
+                    localStorage.setItem('albumPeople', JSON.stringify(state.people));
                     
                     renderPeople();
                 } catch (parseError) {
