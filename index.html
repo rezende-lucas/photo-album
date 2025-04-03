@@ -203,9 +203,23 @@
                                 <label for="name" class="form-label">Nome Completo</label>
                                 <input type="text" class="form-control" id="name" name="name" required placeholder="NOME COMPLETO">
                             </div>
+                            <!-- Campos separados para mãe e pai substituindo filiação -->
                             <div class="form-group">
-                                <label for="filiation" class="form-label">Filiação</label>
-                                <input type="text" class="form-control" id="filiation" name="filiation" placeholder="NOME DOS PAIS">
+                                <label for="mother" class="form-label">Nome da Mãe</label>
+                                <input type="text" class="form-control" id="mother" name="mother" placeholder="NOME DA MÃE">
+                            </div>
+                            <div class="form-group">
+                                <label for="father" class="form-label">Nome do Pai</label>
+                                <input type="text" class="form-control" id="father" name="father" placeholder="NOME DO PAI">
+                            </div>
+                            <!-- Campos para CPF e RG -->
+                            <div class="form-group">
+                                <label for="CPF" class="form-label">CPF</label>
+                                <input type="text" class="form-control cpf-mask" id="CPF" name="CPF" placeholder="000.000.000-00">
+                            </div>
+                            <div class="form-group">
+                                <label for="RG" class="form-label">RG</label>
+                                <input type="text" class="form-control rg-mask" id="RG" name="RG" placeholder="00.000.000-0">
                             </div>
                             <div class="form-group">
                                 <label for="address" class="form-label">Endereço</label>
