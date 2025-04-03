@@ -89,6 +89,18 @@ export function initPhotoGallery() {
     
     // Add OCR button to photo controls
     addOCRButton();
+    
+    // Pre-initialize OCR engine for faster response later
+    try {
+        setTimeout(() => {
+            const ocrManager = getOCRManager();
+            ocrManager.initialize().catch(err => {
+                console.warn('Pré-inicialização do OCR falhou:', err);
+            });
+        }, 3000); // Delay by 3 seconds to let the page load first
+    } catch (e) {
+        console.warn('Não foi possível pré-inicializar o OCR:', e);
+    }
 }
 
 /**
@@ -114,6 +126,38 @@ function addOCRButton() {
 }
 
 /**
+ * Update OCR progress UI
+ * @param {number} percent - Progress percentage (0-100)
+ * @param {string} status - Current status text
+ */
+function updateOCRProgress(percent, status) {
+    const progressContainer = document.getElementById('ocr-progress-container');
+    const progressBar = document.getElementById('ocr-progress-bar');
+    const progressLabel = document.getElementById('ocr-progress-label');
+    
+    if (!progressContainer || !progressBar || !progressLabel) return;
+    
+    // Show progress container if hidden
+    progressContainer.style.display = 'block';
+    
+    // Update progress bar width
+    progressBar.style.width = `${percent}%`;
+    
+    // Update status text
+    progressLabel.textContent = status || `Processando OCR (${percent}%)`;
+}
+
+/**
+ * Hide OCR progress UI
+ */
+function hideOCRProgress() {
+    const progressContainer = document.getElementById('ocr-progress-container');
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
+    }
+}
+
+/**
  * Handle OCR text extraction from selected photo
  */
 async function handleOCRExtraction() {
@@ -125,8 +169,16 @@ async function handleOCRExtraction() {
     // Get the most recent photo (likely to be the document)
     const photo = currentPhotos[currentPhotos.length - 1];
     
-    // Show loading toast
-    showToast('Processando', 'Iniciando extração de texto...', 'info', 0);
+    // Get the OCR button and add processing state
+    const ocrBtn = document.getElementById('ocr-btn');
+    if (ocrBtn) {
+        ocrBtn.classList.add('processing');
+        ocrBtn.disabled = true;
+        ocrBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    }
+    
+    // Show progress indicator
+    updateOCRProgress(0, 'Iniciando OCR...');
     
     try {
         // Get OCR manager
@@ -134,15 +186,21 @@ async function handleOCRExtraction() {
         
         // Progress callback
         const updateProgress = (progress, status) => {
-            document.getElementById('toast-message').textContent = 
-                `Processando OCR: ${status} (${progress}%)`;
+            updateOCRProgress(progress, status);
         };
         
         // Extract data from the image
         const result = await ocrManager.extractFormData(photo.data, updateProgress);
         
-        // Close loading toast
-        document.querySelector('.toast').remove();
+        // Hide progress indicator
+        hideOCRProgress();
+        
+        // Reset OCR button
+        if (ocrBtn) {
+            ocrBtn.classList.remove('processing');
+            ocrBtn.disabled = false;
+            ocrBtn.innerHTML = '<i class="fas fa-file-alt"></i> Extrair Texto';
+        }
         
         if (result.success) {
             // Apply extracted data to the form
@@ -154,12 +212,20 @@ async function handleOCRExtraction() {
             // Create a detailed results modal for review
             showOCRResultsModal(result.data, result.originalText);
         } else {
-            showToast('Erro', `Falha na extração: ${result.error}`, 'error');
+            showToast('Erro', `Falha na extração: ${result.error || 'Erro desconhecido'}`, 'error');
         }
     } catch (error) {
         console.error('OCR extraction error:', error);
-        document.querySelector('.toast').remove();
-        showToast('Erro', 'Ocorreu um erro durante a extração de texto.', 'error');
+        hideOCRProgress();
+        
+        // Reset OCR button
+        if (ocrBtn) {
+            ocrBtn.classList.remove('processing');
+            ocrBtn.disabled = false;
+            ocrBtn.innerHTML = '<i class="fas fa-file-alt"></i> Extrair Texto';
+        }
+        
+        showToast('Erro', 'Ocorreu um erro durante a extração de texto. Tente novamente.', 'error');
     }
 }
 
@@ -189,6 +255,12 @@ function showOCRResultsModal(data, originalText) {
                 </button>
             </div>
             <div class="modal-body">
+                <div class="ocr-alert info">
+                    <i class="fas fa-info-circle"></i>
+                    Os campos foram preenchidos automaticamente com base no texto extraído. 
+                    Verifique as informações e corrija-as se necessário antes de salvar.
+                </div>
+                
                 <div class="ocr-results-container">
                     <div class="ocr-extracted-fields">
                         <h3>Dados Extraídos</h3>
@@ -215,7 +287,7 @@ function showOCRResultsModal(data, originalText) {
                     </div>
                     <div class="ocr-original-text">
                         <h3>Texto Original Extraído</h3>
-                        <pre>${originalText}</pre>
+                        <pre>${originalText || 'Nenhum texto extraído'}</pre>
                     </div>
                 </div>
                 <div class="modal-actions">
@@ -327,15 +399,18 @@ function addPhotoToGallery(imageData) {
     }
     
     // Add OCR functionality for this specific photo
-    const ocrBtn = photoElement.querySelector('.photo-ocr');
+    const ocrBtn = photoElement.querySelector('.photo-action.photo-ocr');
     if (ocrBtn) {
         ocrBtn.addEventListener('click', async () => {
             // Find the photo data
             const photo = currentPhotos.find(p => p.id === photoId);
             if (!photo) return;
             
-            // Show loading toast
-            showToast('Processando', 'Iniciando extração de texto...', 'info', 0);
+            // Add processing state to the photo item
+            photoElement.classList.add('ocr-processing');
+            
+            // Show progress indicator
+            updateOCRProgress(0, 'Iniciando OCR...');
             
             try {
                 // Get OCR manager
@@ -343,15 +418,15 @@ function addPhotoToGallery(imageData) {
                 
                 // Progress callback
                 const updateProgress = (progress, status) => {
-                    document.getElementById('toast-message').textContent = 
-                        `Processando OCR: ${status} (${progress}%)`;
+                    updateOCRProgress(progress, status);
                 };
                 
                 // Extract data from the image
                 const result = await ocrManager.extractFormData(photo.data, updateProgress);
                 
-                // Close loading toast
-                document.querySelector('.toast').remove();
+                // Hide progress indicator and remove processing state
+                hideOCRProgress();
+                photoElement.classList.remove('ocr-processing');
                 
                 if (result.success) {
                     // Apply extracted data to the form
@@ -363,12 +438,13 @@ function addPhotoToGallery(imageData) {
                     // Create a detailed results modal for review
                     showOCRResultsModal(result.data, result.originalText);
                 } else {
-                    showToast('Erro', `Falha na extração: ${result.error}`, 'error');
+                    showToast('Erro', `Falha na extração: ${result.error || 'Erro desconhecido'}`, 'error');
                 }
             } catch (error) {
                 console.error('OCR extraction error:', error);
-                document.querySelector('.toast').remove();
-                showToast('Erro', 'Ocorreu um erro durante a extração de texto.', 'error');
+                hideOCRProgress();
+                photoElement.classList.remove('ocr-processing');
+                showToast('Erro', 'Ocorreu um erro durante a extração de texto. Tente novamente.', 'error');
             }
         });
     }
