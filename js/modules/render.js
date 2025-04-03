@@ -84,19 +84,9 @@ export function renderGridView(peopleArray) {
         card.dataset.id = person.id;
         card.style.animationDelay = `${index * 0.05}s`;
         
-        // Generate random tag type for display
-        const tagTypes = ['', 'danger', 'warning', 'success'];
-        const tagType = tagTypes[Math.floor(Math.random() * tagTypes.length)];
-        const tagText = tagType === 'danger' ? 'ATENÇÃO' : 
-                        tagType === 'warning' ? 'VERIFICAR' : 
-                        tagType === 'success' ? 'LIBERADO' : '';
+        // Removendo a geração de tags aleatórias (LIBERADO, etc)
         
         card.innerHTML = `
-            <div class="card-id">
-                <div class="id-label">ID</div>
-                <div class="id-number">${generateRegistrationId(person.id)}</div>
-            </div>
-            ${tagText ? `<div class="card-tag ${tagType}">${tagText}</div>` : ''}
             <div class="card-img">
                 <img src="${mainPhoto}" alt="${person.name}">
                 ${photoIndicator}
@@ -168,7 +158,6 @@ export function renderListView(peopleArray) {
                 ${photoIndicator}
             </div>
             <div class="list-content">
-                <div class="list-id">${generateRegistrationId(person.id)}</div>
                 <h3 class="person-name">${person.name}</h3>
                 <p class="person-info">
                     <i class="fas fa-user-friends info-icon"></i> 
