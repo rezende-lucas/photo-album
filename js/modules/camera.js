@@ -16,7 +16,7 @@ function isGitHubPages() {
  */
 function getPlaceholderImage(width = 400, height = 320) {
     return isGitHubPages() 
-        ? `https://via.placeholder.com/${width}x${height}` 
+        ? `https://placehold.co/${width}x${height}` 
         : `/api/placeholder/${width}/${height}`;
 }
 
