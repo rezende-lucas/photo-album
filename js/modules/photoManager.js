@@ -46,7 +46,13 @@ export function initPhotoGallery() {
     const photosGallery = document.getElementById('photos-gallery');
     const photoPlaceholder = document.getElementById('photo-placeholder');
     
-    // Set up file input for selecting photos
+    // Verificar se os elementos existem
+    if (!photosGallery || !photoPlaceholder) {
+        console.warn('Elementos da galeria de fotos não encontrados');
+        return;
+    }
+    
+    // Set up file input
     if (fileInput) {
         fileInput.addEventListener('change', handleFileSelection);
     }
