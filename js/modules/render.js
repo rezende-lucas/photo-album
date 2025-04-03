@@ -20,7 +20,7 @@ function isGitHubPages() {
  */
 function getPlaceholderImage(width = 400, height = 320) {
     return isGitHubPages() 
-        ? `https://via.placeholder.com/${width}x${height}` 
+        ? `https://placehold.co/${width}x${height}` 
         : `/api/placeholder/${width}/${height}`;
 }
 
@@ -33,14 +33,14 @@ export function renderPeople(filteredPeople = null) {
     
     // Mostrar estado vazio se não há pessoas
     if (peopleToRender.length === 0) {
-        elements.photoGrid.style.display = 'none';
-        elements.photoList.style.display = 'none';
-        elements.emptyState.style.display = 'flex';
+        if (elements.photoGrid) elements.photoGrid.style.display = 'none';
+        if (elements.photoList) elements.photoList.style.display = 'none';
+        if (elements.emptyState) elements.emptyState.style.display = 'flex';
         return;
     }
     
     // Esconder estado vazio
-    elements.emptyState.style.display = 'none';
+    if (elements.emptyState) elements.emptyState.style.display = 'none';
     
     // Renderizar com base na visualização atual
     if (state.currentView === 'grid') {
@@ -55,20 +55,26 @@ export function renderPeople(filteredPeople = null) {
  */
 export function renderGridView(peopleArray) {
     const elements = getDOMElements();
+    
+    if (!elements.photoGrid) {
+        console.error('Elemento photoGrid não encontrado');
+        return;
+    }
+    
     elements.photoGrid.style.display = 'grid';
-    elements.photoList.style.display = 'none';
+    if (elements.photoList) elements.photoList.style.display = 'none';
     
     elements.photoGrid.innerHTML = '';
     
     peopleArray.forEach((person, index) => {
         // Get the first photo or use placeholder
-        // Corrigido para usar função getPlaceholderImage para compatibilidade com GitHub Pages
-        const mainPhoto = person.photos && person.photos.length > 0 
-            ? person.photos[0].data 
+        // Usar os dados da foto principal ou da primeira foto local
+        const mainPhoto = person.localPhotos && person.localPhotos.length > 0 
+            ? person.localPhotos[0].data 
             : (person.photo || getPlaceholderImage(400, 320));
         
         // Calculate additional photos indicator
-        const additionalPhotos = (person.photos?.length || 0) - 1;
+        const additionalPhotos = (person.localPhotos?.length || 0) - 1;
         const photoIndicator = additionalPhotos > 0 
             ? `<div class="photo-counter">+${additionalPhotos}</div>` 
             : '';
@@ -127,20 +133,26 @@ export function renderGridView(peopleArray) {
  */
 export function renderListView(peopleArray) {
     const elements = getDOMElements();
-    elements.photoGrid.style.display = 'none';
+    
+    if (!elements.photoList) {
+        console.error('Elemento photoList não encontrado');
+        return;
+    }
+    
+    if (elements.photoGrid) elements.photoGrid.style.display = 'none';
     elements.photoList.style.display = 'flex';
     
     elements.photoList.innerHTML = '';
     
     peopleArray.forEach((person, index) => {
         // Get the first photo or use placeholder
-        // Corrigido para usar função getPlaceholderImage para compatibilidade com GitHub Pages
-        const mainPhoto = person.photos && person.photos.length > 0 
-            ? person.photos[0].data 
+        // Usar os dados da foto principal ou da primeira foto local
+        const mainPhoto = person.localPhotos && person.localPhotos.length > 0 
+            ? person.localPhotos[0].data 
             : (person.photo || getPlaceholderImage(400, 320));
         
         // Calculate additional photos indicator
-        const additionalPhotos = (person.photos?.length || 0) - 1;
+        const additionalPhotos = (person.localPhotos?.length || 0) - 1;
         const photoIndicator = additionalPhotos > 0 
             ? `<div class="photo-counter">+${additionalPhotos}</div>` 
             : '';
