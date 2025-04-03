@@ -36,7 +36,7 @@ export function setState(newState) {
 }
 
 /**
- * Migra dados dos campos antigos para os novos (filiation -> mother/father)
+ * Migra dados antigos para o novo formato com os campos separados
  * @param {Array} peopleArray - Lista de pessoas para migrar
  * @returns {Array} Lista de pessoas migrada
  */
@@ -47,17 +47,17 @@ function migrateData(peopleArray) {
         
         // Se já tem os novos campos, mantém como está
         if (!updatedPerson.mother && !updatedPerson.father) {
-            // Verifica se tem o campo filiation para migrar
-            if (updatedPerson.filiation) {
-                // Tenta dividir o campo filiation em mother e father
-                const parts = updatedPerson.filiation.split(/\s+e\s+|\s+E\s+|,\s*|\s+[eE]\s+/);
+            // Para compatibilidade, verifica se tem o campo filiation antigo
+            if (person.filiation) {
+                // Tenta dividir o filiation em mother e father
+                const parts = person.filiation.split(/\s+e\s+|\s+E\s+|,\s*|\s+[eE]\s+/);
                 
                 if (parts.length >= 2) {
                     updatedPerson.mother = parts[0].trim();
                     updatedPerson.father = parts[1].trim();
                 } else {
                     // Se não conseguir dividir, coloca tudo no campo mother
-                    updatedPerson.mother = updatedPerson.filiation;
+                    updatedPerson.mother = person.filiation;
                     updatedPerson.father = '';
                 }
             } else {
@@ -69,6 +69,11 @@ function migrateData(peopleArray) {
         // Inicializa campos CPF e RG se não existirem
         if (!updatedPerson.CPF) updatedPerson.CPF = '';
         if (!updatedPerson.RG) updatedPerson.RG = '';
+        
+        // Remove o campo filiation para não tentar enviá-lo ao Supabase
+        if (updatedPerson.filiation) {
+            delete updatedPerson.filiation;
+        }
         
         return updatedPerson;
     });
@@ -129,7 +134,7 @@ async function init() {
                 return person;
             });
             
-            // Migrar dados de filiation para os novos campos mother e father
+            // Migrar dados para os novos campos separados e remover filiation
             state.people = migrateData(state.people);
             
             // Salvar os dados migrados de volta no localStorage para backup
@@ -144,7 +149,7 @@ async function init() {
                 try {
                     state.people = JSON.parse(localData);
                     
-                    // Migrar dados de filiation para os novos campos mother e father
+                    // Migrar dados para os novos campos separados e remover filiation
                     state.people = migrateData(state.people);
                     
                     // Salvar os dados migrados de volta
