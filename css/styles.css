@@ -361,7 +361,8 @@
             transition: var(--transition-fast);
         }
 
-        .sidebar:hover .sidebar-btn span {
+        .sidebar:hover .sidebar-btn span,
+        .sidebar.active .sidebar-btn span {
             opacity: 1;
         }
 
@@ -418,7 +419,8 @@
             transition: var(--transition-fast);
         }
 
-        .sidebar:hover .section-title {
+        .sidebar:hover .section-title,
+        .sidebar.active .section-title {
             opacity: 1;
         }
 
@@ -822,11 +824,17 @@
         }
 
         .list-content {
-            padding: 1rem 1.5rem;
+            padding: var(--spacing-sm);
             display: flex;
             flex-direction: column;
             justify-content: center;
             flex-grow: 1;
+        }
+
+        @media (min-width: 768px) {
+            .list-content {
+                padding: 1rem 1.5rem;
+            }
         }
 
         .list-id {
@@ -1463,6 +1471,16 @@
 
             .sidebar.active {
                 width: 240px;
+                opacity: 1;
+            }
+
+            /* Garantir que os textos dos itens do menu fiquem visíveis quando o sidebar estiver ativo */
+            .sidebar.active .sidebar-btn span {
+                opacity: 1;
+            }
+
+            /* Garantir que os títulos das seções fiquem visíveis quando o sidebar estiver ativo */
+            .sidebar.active .section-title {
                 opacity: 1;
             }
 

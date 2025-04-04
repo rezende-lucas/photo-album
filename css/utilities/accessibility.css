@@ -1,0 +1,91 @@
+/* Melhorias de Acessibilidade */
+
+/* Foco visível para navegação por teclado */
+:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* Esconder visualmente, mas manter acessível para leitores de tela */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Melhorar contraste para texto */
+.high-contrast {
+    color: #ffffff;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Aumentar tamanho de alvos de clique para melhor acessibilidade em dispositivos móveis */
+button, 
+.btn, 
+.card-btn, 
+.sidebar-btn,
+.user-dropdown-toggle {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Melhorar legibilidade de texto em fundos com imagem */
+.card-content, 
+.modal-content {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: var(--border-radius);
+}
+
+/* Melhorar contraste para estados de foco e hover */
+button:focus, 
+.btn:focus, 
+.card-btn:focus,
+.sidebar-btn:focus,
+.user-dropdown-toggle:focus {
+    box-shadow: 0 0 0 2px var(--accent-primary), 0 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+/* Melhorar contraste para links */
+a {
+    text-decoration: underline;
+}
+
+a:hover, a:focus {
+    text-decoration: none;
+    background-color: rgba(43, 108, 176, 0.2);
+}
+
+/* Melhorar visibilidade de elementos interativos */
+.interactive {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.interactive:hover, .interactive:focus {
+    transform: scale(1.05);
+}
+
+/* Suporte para preferências de redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .interactive:hover, .interactive:focus {
+        transform: none;
+    }
+    
+    .person-card:hover {
+        transform: none;
+    }
+}

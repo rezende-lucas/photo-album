@@ -146,6 +146,23 @@ export function toggleSidebar() {
     }
 
     elements.sidebar.classList.toggle('active');
+
+    // Garantir que os textos dos itens do menu e os títulos das seções fiquem visíveis
+    // quando o sidebar estiver ativo no modo mobile
+    const isMobile = window.innerWidth <= 992;
+    if (isMobile && elements.sidebar.classList.contains('active')) {
+        // Garantir que os textos dos itens do menu fiquem visíveis
+        const menuTexts = elements.sidebar.querySelectorAll('.sidebar-btn span');
+        menuTexts.forEach(span => {
+            span.style.opacity = '1';
+        });
+
+        // Garantir que os títulos das seções fiquem visíveis
+        const sectionTitles = elements.sidebar.querySelectorAll('.section-title');
+        sectionTitles.forEach(title => {
+            title.style.opacity = '1';
+        });
+    }
 }
 
 /**

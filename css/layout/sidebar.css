@@ -1,0 +1,143 @@
+/* Sidebar Styles */
+
+.sidebar {
+    position: fixed;
+    top: calc(var(--header-height) + 8px);
+    left: 0;
+    bottom: 0;
+    width: 80px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0;
+    z-index: 90;
+    transition: var(--transition-medium);
+}
+
+.sidebar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--accent-primary);
+    box-shadow: 0 0 10px var(--accent-primary);
+}
+
+.sidebar:hover {
+    width: 240px;
+}
+
+.sidebar-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    gap: 1rem;
+    position: relative;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+.sidebar-btn span {
+    opacity: 0;
+    white-space: nowrap;
+    transition: var(--transition-fast);
+}
+
+.sidebar:hover .sidebar-btn span,
+.sidebar.active .sidebar-btn span {
+    opacity: 1;
+}
+
+.sidebar-btn:hover {
+    color: var(--accent-primary);
+    background-color: rgba(43, 108, 176, 0.1);
+}
+
+.sidebar-btn.active {
+    color: var(--accent-primary);
+    background-color: rgba(43, 108, 176, 0.1);
+}
+
+.sidebar-btn.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--accent-primary);
+}
+
+.sidebar-icon {
+    font-size: 1.2rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+.sidebar-section {
+    width: 100%;
+    padding: 1rem 0;
+    position: relative;
+}
+
+.sidebar-section:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: var(--glass-border);
+}
+
+.section-title {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: var(--transition-fast);
+}
+
+.sidebar:hover .section-title,
+.sidebar.active .section-title {
+    opacity: 1;
+}
+
+/* Responsive Sidebar Adjustments */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 0;
+        opacity: 0;
+    }
+
+    .sidebar.active {
+        width: 240px;
+        opacity: 1;
+    }
+
+    /* Garantir que os textos dos itens do menu fiquem visíveis quando o sidebar estiver ativo */
+    .sidebar.active .sidebar-btn span {
+        opacity: 1;
+    }
+
+    /* Garantir que os títulos das seções fiquem visíveis quando o sidebar estiver ativo */
+    .sidebar.active .section-title {
+        opacity: 1;
+    }
+}

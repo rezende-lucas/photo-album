@@ -1,0 +1,37 @@
+/* CSS Variables and Theme Settings */
+
+:root {
+    /* Variáveis de cores - Tema claro (tático) */
+    --bg-primary: #0e1419;
+    --bg-secondary: #1a2129;
+    --text-primary: #e6e9ed;
+    --text-secondary: #93a7ba;
+    --accent-primary: #2b6cb0;
+    --accent-secondary: #c53030;
+    --accent-tertiary: #2f855a;
+    --accent-gradient: linear-gradient(135deg, #1a365d, #2b6cb0);
+    --warning-gradient: linear-gradient(45deg, #c53030, #e53e3e);
+    --success-gradient: linear-gradient(45deg, #2f855a, #38a169);
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    --glass-bg: rgba(16, 24, 32, 0.8);
+    --glass-border: rgba(56, 88, 124, 0.3);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --danger: #e53e3e;
+    --success: #38a169;
+    --warning: #ecc94b;
+    --header-height: 70px;
+    --border-radius: 6px;
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-medium: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --grid-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%232d3748' fill-opacity='0.2' d='M1,1 L19,1 L19,19 L1,19 L1,1 Z M0,0 L20,0 L20,20 L0,20 L0,0 Z'/%3E%3C/svg%3E");
+}
+
+.light-mode {
+    --bg-primary: #edf2f7;
+    --bg-secondary: #ffffff;
+    --text-primary: #1a202c;
+    --text-secondary: #4a5568;
+    --glass-bg: rgba(237, 242, 247, 0.8);
+    --glass-border: rgba(203, 213, 224, 0.3);
+}

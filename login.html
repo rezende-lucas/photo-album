@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.I.D.C.T. - Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/auth.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="scan-lines"></div>
-    
+
     <div class="tactical-header">
         <div class="tactical-stripes"></div>
     </div>
-    
+
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
@@ -33,7 +33,7 @@
                     Acesso Restrito
                 </div>
             </div>
-            
+
             <div class="auth-tabs">
                 <button class="auth-tab active" data-tab="login">
                     <i class="fas fa-sign-in-alt"></i> Login
@@ -42,14 +42,14 @@
                     <i class="fas fa-user-plus"></i> Registro
                 </button>
             </div>
-            
+
             <div class="auth-content">
                 <!-- Login Form -->
                 <form id="login-form" class="auth-form active">
                     <div class="auth-title">
                         <i class="fas fa-lock"></i> Autenticação de Usuário
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="login-email" class="form-label">Email</label>
                         <div class="input-with-icon">
@@ -57,7 +57,7 @@
                             <input type="email" class="form-control" id="login-email" name="email" required placeholder="SEU EMAIL">
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="login-password" class="form-label">Senha</label>
                         <div class="input-with-icon">
@@ -65,7 +65,7 @@
                             <input type="password" class="form-control" id="login-password" name="password" required placeholder="SUA SENHA">
                         </div>
                     </div>
-                    
+
                     <div class="form-options">
                         <label class="checkbox-container">
                             <input type="checkbox" id="remember-me">
@@ -74,20 +74,29 @@
                         </label>
                         <a href="#" id="forgot-password" class="forgot-link">Esqueceu a senha?</a>
                     </div>
-                    
+
                     <div class="auth-error" id="login-error"></div>
-                    
+
+                    <!-- Mensagem de credenciais mock para ambiente local -->
+                    <div class="auth-message" id="mock-credentials" style="display: none;">
+                        <i class="fas fa-info-circle"></i> Ambiente local detectado. Use as credenciais:
+                        <div class="mock-info">
+                            <strong>Email:</strong> <span id="mock-email"></span><br>
+                            <strong>Senha:</strong> <span id="mock-password"></span>
+                        </div>
+                    </div>
+
                     <button type="submit" class="auth-btn">
                         <i class="fas fa-sign-in-alt"></i> Entrar
                     </button>
                 </form>
-                
+
                 <!-- Register Form -->
                 <form id="register-form" class="auth-form">
                     <div class="auth-title">
                         <i class="fas fa-user-plus"></i> Novo Cadastro
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-name" class="form-label">Nome</label>
                         <div class="input-with-icon">
@@ -95,7 +104,7 @@
                             <input type="text" class="form-control" id="register-name" name="name" required placeholder="SEU NOME COMPLETO">
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-email" class="form-label">Email</label>
                         <div class="input-with-icon">
@@ -103,7 +112,7 @@
                             <input type="email" class="form-control" id="register-email" name="email" required placeholder="SEU EMAIL">
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-password" class="form-label">Senha</label>
                         <div class="input-with-icon">
@@ -111,7 +120,7 @@
                             <input type="password" class="form-control" id="register-password" name="password" required placeholder="CRIE UMA SENHA">
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-confirm-password" class="form-label">Confirmar Senha</label>
                         <div class="input-with-icon">
@@ -119,7 +128,7 @@
                             <input type="password" class="form-control" id="register-confirm-password" name="confirm-password" required placeholder="CONFIRME SUA SENHA">
                         </div>
                     </div>
-                    
+
                     <div class="form-options">
                         <label class="checkbox-container">
                             <input type="checkbox" id="accept-terms" required>
@@ -127,20 +136,20 @@
                             Aceito os termos de uso
                         </label>
                     </div>
-                    
+
                     <div class="auth-error" id="register-error"></div>
-                    
+
                     <button type="submit" class="auth-btn">
                         <i class="fas fa-user-plus"></i> Registrar
                     </button>
                 </form>
-                
+
                 <!-- Password Reset Form -->
                 <form id="reset-form" class="auth-form">
                     <div class="auth-title">
                         <i class="fas fa-key"></i> Recuperar Senha
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="reset-email" class="form-label">Email</label>
                         <div class="input-with-icon">
@@ -148,24 +157,24 @@
                             <input type="email" class="form-control" id="reset-email" name="reset-email" required placeholder="SEU EMAIL">
                         </div>
                     </div>
-                    
+
                     <div class="auth-message" id="reset-message">
                         Insira seu email para receber um link de recuperação de senha.
                     </div>
-                    
+
                     <div class="auth-error" id="reset-error"></div>
-                    
+
                     <button type="submit" class="auth-btn">
                         <i class="fas fa-paper-plane"></i> Enviar Link
                     </button>
-                    
+
                     <button type="button" class="auth-btn secondary" id="back-to-login">
                         <i class="fas fa-arrow-left"></i> Voltar para Login
                     </button>
                 </form>
             </div>
         </div>
-        
+
         <div class="auth-info">
             <div class="auth-info-content">
                 <div class="auth-info-title">Sistema de Identificação e Catalogação Tática</div>
@@ -176,10 +185,10 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
-    
+
     <!-- Radar Animation -->
     <div class="radar-container">
         <svg class="radar-svg" viewBox="0 0 100 100">
@@ -198,7 +207,7 @@
             </circle>
         </svg>
     </div>
-    
+
     <script src="js/config.js"></script>
     <script type="module" src="js/auth.js"></script>
 </body>

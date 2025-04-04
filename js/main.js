@@ -7,17 +7,7 @@ import { renderPeople } from './modules/render.js';
 import { requireAuth, getCurrentUser } from './modules/auth.js';
 import { showToast } from './components/toast.js';
 import { setupCameraButton } from './modules/people.js';
-
-// Utilitário para determinar caminhos corretos baseado no ambiente (GitHub Pages ou local)
-const isGitHubPages = window.location.hostname === 'rezende-lucas.github.io';
-const BASE_PATH = isGitHubPages ? '/photo-album' : '';
-
-// Função utilitária para resolver caminhos de imagens placeholder
-export function getPlaceholderImage(width, height) {
-    return isGitHubPages 
-        ? `https://placehold.co/${width}x${height}` 
-        : `/api/placeholder/${width}/${height}`;
-}
+import { BASE_PATH, getPlaceholderImage } from './modules/config.js';
 
 // Estado global da aplicação
 export const state = {
@@ -29,6 +19,9 @@ export const state = {
     currentUser: null,
     basePath: BASE_PATH
 };
+
+// Expor o estado global para acesso em outros módulos
+window.state = state;
 
 // Função para atualizar o estado
 export function setState(newState) {
@@ -44,14 +37,14 @@ function migrateData(peopleArray) {
     return peopleArray.map(person => {
         // Verificar se já existe um objeto para preservar seus dados
         const updatedPerson = { ...person };
-        
+
         // Se já tem os novos campos, mantém como está
         if (!updatedPerson.mother && !updatedPerson.father) {
             // Para compatibilidade, verifica se tem o campo filiation antigo
             if (person.filiation) {
                 // Tenta dividir o filiation em mother e father
                 const parts = person.filiation.split(/\s+e\s+|\s+E\s+|,\s*|\s+[eE]\s+/);
-                
+
                 if (parts.length >= 2) {
                     updatedPerson.mother = parts[0].trim();
                     updatedPerson.father = parts[1].trim();
@@ -65,16 +58,16 @@ function migrateData(peopleArray) {
                 updatedPerson.father = '';
             }
         }
-        
+
         // Inicializa campos CPF e RG se não existirem
         if (!updatedPerson.CPF) updatedPerson.CPF = '';
         if (!updatedPerson.RG) updatedPerson.RG = '';
-        
+
         // Remove o campo filiation para não tentar enviá-lo ao Supabase
         if (updatedPerson.filiation) {
             delete updatedPerson.filiation;
         }
-        
+
         return updatedPerson;
     });
 }
@@ -85,36 +78,36 @@ async function init() {
         // Verificar autenticação
         const isAuthenticated = await requireAuth();
         if (!isAuthenticated) return;
-        
+
         const elements = getDOMElements();
-        
+
         // Verificar se elementos existem antes de usá-los
         if (!elements.body) {
             console.error('Elemento body não encontrado');
             return;
         }
-        
+
         const { user } = await getCurrentUser();
         setState({ currentUser: user });
-        
+
         if (user && elements.userDisplayName) {
             elements.userDisplayName.textContent = user.user_metadata?.name || user.email;
         }
-        
+
         // Verificar tema
         state.isDarkMode = localStorage.getItem('darkMode') === 'true';
         if (state.isDarkMode && elements.body && elements.themeToggle) {
             elements.body.classList.add('light-mode');
             elements.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
         }
-        
+
         // Inicializar cliente Supabase
         state.supabaseClient = initializeSupabaseClient();
-        
+
         // Carregar dados
         try {
             state.people = await loadPeopleFromDB(state.supabaseClient);
-            
+
             // Migrar dados antigos para o novo formato de fotos
             state.people = state.people.map(person => {
                 // Se já existe uma estrutura para fotos múltiplas, manter
@@ -130,16 +123,16 @@ async function init() {
                         person.localPhotos = [];
                     }
                 }
-                
+
                 return person;
             });
-            
+
             // Migrar dados para os novos campos separados e remover filiation
             state.people = migrateData(state.people);
-            
+
             // Salvar os dados migrados de volta no localStorage para backup
             localStorage.setItem('albumPeople', JSON.stringify(state.people));
-            
+
             renderPeople();
         } catch (error) {
             console.error('Falha ao carregar dados:', error);
@@ -148,13 +141,13 @@ async function init() {
             if (localData) {
                 try {
                     state.people = JSON.parse(localData);
-                    
+
                     // Migrar dados para os novos campos separados e remover filiation
                     state.people = migrateData(state.people);
-                    
+
                     // Salvar os dados migrados de volta
                     localStorage.setItem('albumPeople', JSON.stringify(state.people));
-                    
+
                     renderPeople();
                 } catch (parseError) {
                     console.error('Falha ao analisar dados locais:', parseError);
@@ -164,10 +157,10 @@ async function init() {
                 state.people = [];
             }
         }
-        
+
         // Configurar listeners de eventos
         setupEventListeners();
-        
+
         // Importar e inicializar a galeria de fotos dinamicamente
         try {
             const photoManagerModule = await import('./modules/photoManager.js');
@@ -179,7 +172,7 @@ async function init() {
             console.error('Erro ao carregar módulo de gerenciamento de fotos:', error);
             showToast('Aviso', 'Funcionalidade de galeria de fotos indisponível.', 'warning');
         }
-        
+
         // Configurar botão de câmera
         try {
             setupCameraButton();
