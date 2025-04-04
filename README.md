@@ -109,13 +109,17 @@ python -m http.server
 A tabela `people` no Supabase deve conter os seguintes campos:
 - `id`: Identificador único (string)
 - `name`: Nome da pessoa
-- `filiation`: Filiação (opcional)
+- `mother`: Nome da mãe (opcional)
+- `father`: Nome do pai (opcional)
+- `CPF`: Número do CPF (opcional)
+- `RG`: Número do RG (opcional)
 - `address`: Endereço (opcional)
 - `history`: Histórico/observações (opcional)
 - `dob`: Data de nascimento (opcional)
 - `phone`: Telefone (opcional)
 - `email`: Email (opcional)
-- `localPhotos`: Array de objetos contendo fotos
+- `photo`: Foto principal (para compatibilidade)
+- `localPhotos`: Array de objetos contendo múltiplas fotos
 
 ## 🎨 Customização
 
