@@ -1,0 +1,319 @@
+/* Button Styles */
+
+.add-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.add-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transition: var(--transition-medium);
+}
+
+.add-btn:hover::before {
+    left: 0;
+}
+
+.add-btn:hover {
+    background-color: #1d4e8c;
+}
+
+.view-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+.view-btn.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.card-btn {
+    flex: 1;
+    background: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.card-btn:hover {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.card-btn.edit-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.card-btn.delete-btn:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.list-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.list-btn:hover {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.list-btn.delete-btn:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+}
+
+.close-btn {
+    background: none;
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 0.8rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--glass-border);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+.edit-btn {
+    background-color: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.edit-btn:hover {
+    background-color: #1d4e8c;
+}
+
+.delete-btn {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.delete-btn:hover {
+    background-color: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.cancel-btn {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+.cancel-btn:hover {
+    background-color: var(--glass-border);
+}
+
+.save-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+}
+
+.save-btn:hover {
+    background-color: #1d4e8c;
+}
+
+/* Camera Buttons */
+.camera-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: var(--transition-fast);
+    width: 100%;
+}
+
+.camera-btn:hover {
+    background-color: #1d4e8c;
+}
+
+.capture-btn, .retake-btn, .use-photo-btn, .switch-camera-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-fast);
+}
+
+.capture-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    flex-basis: 100%;
+}
+
+.retake-btn:hover, .switch-camera-btn:hover {
+    background-color: var(--bg-primary);
+}
+
+.capture-btn:hover, .use-photo-btn:hover {
+    background-color: #1d4e8c;
+}
+
+.use-photo-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+}
+
+/* Photo Buttons */
+.photo-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-fast);
+}
+
+.photo-btn:hover {
+    background-color: #1d4e8c;
+}
+
+.photo-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+/* Responsive Button Adjustments */
+@media (max-width: 768px) {
+    .add-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+}

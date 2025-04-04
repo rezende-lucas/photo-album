@@ -1,0 +1,37 @@
+/* Reset and Base Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto Mono', 'SF Mono', monospace;
+}
+
+body {
+    background-color: var(--bg-primary);
+    background-image: var(--grid-pattern);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: var(--transition-medium);
+    overflow-x: hidden;
+}
+
+/* Scrollbar Personalizada */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-left: 1px solid var(--glass-border);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1d4e8c;
+}
