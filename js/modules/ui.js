@@ -15,8 +15,8 @@ function isGitHubPages() {
  * @returns {string} URL da imagem placeholder
  */
 function getPlaceholderImage(width = 400, height = 320) {
-    return isGitHubPages() 
-        ? `https://via.placeholder.com/${width}x${height}` 
+    return isGitHubPages()
+        ? `https://via.placeholder.com/${width}x${height}`
         : `/api/placeholder/${width}/${height}`;
 }
 
@@ -33,6 +33,9 @@ export function getDOMElements() {
         photoList: document.getElementById('photo-list'),
         emptyState: document.getElementById('empty-state'),
         searchInput: document.getElementById('search-input'),
+        searchContainer: document.querySelector('.search-container'),
+        mobileSearchToggle: document.getElementById('mobile-search-toggle'),
+        mainContent: document.querySelector('.main-content'),
         gridViewBtn: document.getElementById('grid-view-btn'),
         listViewBtn: document.getElementById('list-view-btn'),
         sidebarBtns: document.querySelectorAll('.sidebar-btn'),
@@ -50,7 +53,7 @@ export function getDOMElements() {
         fileInput: document.getElementById('photo'),
         fileName: document.getElementById('file-name'),
         toastContainer: document.getElementById('toast-container'),
-        
+
         // Novos elementos para autenticação
         userDisplayName: document.getElementById('user-display-name'),
         userAvatar: document.getElementById('user-avatar'),
@@ -75,26 +78,26 @@ export function displayWarning(title, message) {
     warningElement.style.right = '10px';
     warningElement.style.zIndex = '9999';
     warningElement.innerHTML = `
-        <strong>${title}:</strong> 
+        <strong>${title}:</strong>
         ${message}
         <button style="margin-left: 10px; padding: 2px 8px; cursor: pointer;">
             Fechar
         </button>
     `;
-    
+
     const closeButton = warningElement.querySelector('button');
     if (closeButton) {
         closeButton.addEventListener('click', () => {
             warningElement.remove();
         });
     }
-    
+
     document.body.appendChild(warningElement);
 }
 
 /**
  * Resolve o caminho para uma URL baseado no ambiente (GitHub Pages ou local)
- * @param {string} path - Caminho relativo 
+ * @param {string} path - Caminho relativo
  * @returns {string} Caminho completo resolvido
  */
 export function resolvePath(path) {
@@ -107,27 +110,27 @@ export function resolvePath(path) {
  */
 export function toggleDarkMode() {
     const elements = getDOMElements();
-    
+
     if (!elements.body || !elements.themeToggle) {
         console.warn('Elementos necessários para alternar tema não encontrados');
         return false;
     }
-    
+
     elements.body.classList.toggle('light-mode');
     const isDarkMode = elements.body.classList.contains('light-mode');
-    
+
     // Atualizar ícone do botão
-    elements.themeToggle.innerHTML = isDarkMode ? 
-        '<i class="fas fa-sun"></i>' : 
+    elements.themeToggle.innerHTML = isDarkMode ?
+        '<i class="fas fa-sun"></i>' :
         '<i class="fas fa-moon"></i>';
-    
+
     // Salvar preferência
     try {
         localStorage.setItem('darkMode', isDarkMode);
     } catch (error) {
         console.warn('Não foi possível salvar preferência de tema:', error);
     }
-    
+
     return isDarkMode;
 }
 
@@ -136,12 +139,12 @@ export function toggleDarkMode() {
  */
 export function toggleSidebar() {
     const elements = getDOMElements();
-    
+
     if (!elements.sidebar) {
         console.warn('Elemento sidebar não encontrado');
         return;
     }
-    
+
     elements.sidebar.classList.toggle('active');
 }
 
@@ -150,13 +153,35 @@ export function toggleSidebar() {
  */
 export function toggleUserDropdown() {
     const elements = getDOMElements();
-    
+
     if (!elements.userDropdown) {
         console.warn('Elemento userDropdown não encontrado');
         return;
     }
-    
+
     elements.userDropdown.classList.toggle('active');
+}
+
+/**
+ * Alterna a visibilidade da barra de pesquisa em dispositivos móveis
+ */
+export function toggleMobileSearch() {
+    const elements = getDOMElements();
+
+    if (!elements.searchContainer || !elements.mainContent) {
+        console.warn('Elementos necessários para alternar barra de pesquisa não encontrados');
+        return;
+    }
+
+    elements.searchContainer.classList.toggle('active');
+    elements.mainContent.classList.toggle('search-active');
+
+    // Focar no campo de pesquisa quando estiver visível
+    if (elements.searchContainer.classList.contains('active') && elements.searchInput) {
+        setTimeout(() => {
+            elements.searchInput.focus();
+        }, 300);
+    }
 }
 
 /**
@@ -164,12 +189,12 @@ export function toggleUserDropdown() {
  */
 export function updateSidebarActive(view) {
     const elements = getDOMElements();
-    
+
     if (!elements.sidebarBtns || !elements.sidebarBtns.length) {
         console.warn('Botões da barra lateral não encontrados');
         return;
     }
-    
+
     elements.sidebarBtns.forEach(btn => {
         if (btn.dataset.view === view) {
             btn.classList.add('active');
@@ -184,19 +209,19 @@ export function updateSidebarActive(view) {
  */
 export function initializeUserUI(user) {
     const elements = getDOMElements();
-    
+
     // Atualizar nome de exibição do usuário
     if (elements.userDisplayName && user) {
         elements.userDisplayName.textContent = user.user_metadata?.name || user.email || 'Usuário';
     }
-    
+
     // Tratar avatar do usuário
     if (elements.userAvatar) {
         if (user && user.user_metadata?.avatar_url) {
             // Se o usuário tem avatar, usar
             elements.userAvatar.src = user.user_metadata.avatar_url;
             elements.userAvatar.style.display = 'block';
-            
+
             // Remover iniciais se existirem
             const initialsEl = elements.userAvatar.parentElement?.querySelector('.user-initials');
             if (initialsEl) {
@@ -205,14 +230,14 @@ export function initializeUserUI(user) {
         } else {
             // Sem avatar, usar placeholder ou iniciais
             const placeholderUrl = getPlaceholderImage(40, 40);
-            
+
             // Verificar se já existe um elemento de iniciais
             const existingInitials = elements.userAvatar.parentElement?.querySelector('.user-initials');
-            
+
             if (!existingInitials && elements.userAvatar.parentElement) {
                 // Avatar não disponível, esconder imagem e mostrar iniciais
                 elements.userAvatar.style.display = 'none';
-                
+
                 // Obter inicial do nome ou email
                 const initial = (user?.user_metadata?.name || user?.email || 'U').charAt(0).toUpperCase();
                 elements.userAvatar.parentElement.innerHTML += `<div class="user-initials">${initial}</div>`;
@@ -223,34 +248,34 @@ export function initializeUserUI(user) {
             }
         }
     }
-    
+
     // Toggle do dropdown de usuário - só adicionar listener se não existir
     if (elements.userDropdownToggle) {
         // Verificar se já tem listener adicionado
         const hasClickListener = elements.userDropdownToggle._hasToggleListener;
-        
+
         if (!hasClickListener) {
             elements.userDropdownToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleUserDropdown();
             });
-            
+
             // Marcar que já adicionamos o listener
             elements.userDropdownToggle._hasToggleListener = true;
         }
     }
-    
+
     // Adicionar listener global para fechar dropdown ao clicar fora (apenas uma vez)
     if (!window._hasDropdownClickListener && elements.userDropdown && elements.userDropdownToggle) {
         document.addEventListener('click', function(e) {
-            if (elements.userDropdown && 
-                elements.userDropdownToggle && 
+            if (elements.userDropdown &&
+                elements.userDropdownToggle &&
                 !elements.userDropdownToggle.contains(e.target) &&
                 !elements.userDropdown.contains(e.target)) {
                 elements.userDropdown.classList.remove('active');
             }
         });
-        
+
         // Marcar que já adicionamos o listener global
         window._hasDropdownClickListener = true;
     }

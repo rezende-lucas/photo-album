@@ -10,11 +10,11 @@
 </head>
 <body>
     <div class="scan-lines"></div>
-    
+
     <div class="tactical-header">
         <div class="tactical-stripes"></div>
     </div>
-    
+
     <div class="app-container">
         <!-- Header -->
         <!-- Header Section Updated (Replace the existing header section in index.html) -->
@@ -31,22 +31,26 @@
             <span class="brand-subtitle">identificação e catalogação tática</span>
         </div>
     </div>
-    
+
     <div class="header-actions">
         <div class="header-status">
             <span class="status-indicator"></span>
             Sistema Operacional
         </div>
-        
+
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" class="search-input" id="search-input" placeholder="PESQUISAR REGISTRO...">
         </div>
-        
+
+        <button class="mobile-search-toggle" id="mobile-search-toggle">
+            <i class="fas fa-search"></i>
+        </button>
+
         <button class="theme-toggle" id="theme-toggle">
             <i class="fas fa-moon"></i>
         </button>
-        
+
         <!-- User profile dropdown -->
         <div class="user-dropdown-container">
             <button class="user-dropdown-toggle" id="user-dropdown-toggle">
@@ -56,7 +60,7 @@
                     <img src="https://placehold.co/40x40" alt="Avatar" class="user-avatar" id="user-avatar">
                 </div>
             </button>
-            
+
             <div class="user-dropdown" id="user-dropdown">
                 <div class="dropdown-header">
                     <div class="dropdown-user-info">
@@ -80,7 +84,7 @@
         </div>
     </div>
 </header>
-        
+
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-section">
@@ -89,13 +93,13 @@
                     <i class="fas fa-th sidebar-icon"></i>
                     <span>Grade</span>
                 </button>
-                
+
                 <button class="sidebar-btn" data-view="list">
                     <i class="fas fa-list sidebar-icon"></i>
                     <span>Lista</span>
                 </button>
             </div>
-            
+
             <div class="sidebar-section">
                 <h3 class="section-title">Ações</h3>
                 <button class="sidebar-btn" id="sidebar-add-btn">
@@ -103,7 +107,7 @@
                     <span>Adicionar Pessoa</span>
                 </button>
             </div>
-            
+
             <div class="sidebar-section">
                 <h3 class="section-title">Filtros</h3>
                 <button class="sidebar-btn">
@@ -112,7 +116,7 @@
                 </button>
             </div>
         </aside>
-        
+
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-area">
@@ -125,12 +129,12 @@
                         </h2>
                         <div class="system-version">v2.5.0 | ID:SYS-45A7-2025</div>
                     </div>
-                    
+
                     <button class="add-btn" id="add-person-btn">
                         <i class="fas fa-user-plus"></i> Adicionar Registro
                     </button>
                 </div>
-                
+
                 <div class="view-options">
                     <button class="view-btn active" id="grid-view-btn">
                         <i class="fas fa-th"></i> Grade
@@ -139,13 +143,13 @@
                         <i class="fas fa-list"></i> Lista
                     </button>
                 </div>
-                
+
                 <!-- Photo Grid View -->
                 <div class="photo-grid" id="photo-grid"></div>
-                
+
                 <!-- Photo List View -->
                 <div class="photo-list" id="photo-list"></div>
-                
+
                 <!-- Empty State -->
                 <div class="empty-state" id="empty-state">
                     <i class="fas fa-database empty-icon"></i>
@@ -158,7 +162,7 @@
             </div>
         </main>
     </div>
-    
+
     <!-- Person Details Modal -->
     <div class="modal-backdrop" id="person-modal">
         <div class="modal">
@@ -180,7 +184,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Add/Edit Person Modal -->
     <div class="modal-backdrop" id="form-modal">
         <div class="modal">
@@ -233,7 +237,7 @@
                         <div>
                             <div class="form-group">
     <label class="form-label">Fotografias</label>
-    
+
     <!-- Photos preview area -->
     <div class="photos-gallery" id="photos-gallery">
         <!-- Placeholder when no photos -->
@@ -241,10 +245,10 @@
             <i class="fas fa-camera-retro"></i>
             <span>CLIQUE PARA ADICIONAR FOTO DE IDENTIFICAÇÃO</span>
         </div>
-        
+
         <!-- Photo previews will be added here dynamically -->
     </div>
-    
+
     <!-- Control buttons -->
     <div class="photo-controls">
         <!-- File input for selecting photos from device -->
@@ -252,7 +256,7 @@
             <i class="fas fa-upload"></i> Selecionar foto
             <input type="file" id="photo-file-input" accept="image/*" style="display:none;" multiple>
         </label>
-        
+
         <!-- Camera button -->
         <button type="button" class="photo-btn" id="camera-btn">
             <i class="fas fa-camera"></i> Usar Câmera
@@ -322,7 +326,7 @@
 </div>
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
-    
+
     <!-- Radar Animation -->
     <div class="radar-container">
         <svg class="radar-svg" viewBox="0 0 100 100">
@@ -341,9 +345,9 @@
             </circle>
         </svg>
     </div>
-     <script src="js/config.js"></script>  
+     <script src="js/config.js"></script>
     <!-- 1. Versão original - use durante o desenvolvimento -->
-    <!-- <script src="js/script.js"></script> -->    
+    <!-- <script src="js/script.js"></script> -->
     <!-- 2. Versão modular - ative quando estiver pronto -->
     <script type="module" src="js/main.js"></script>
 </body>
