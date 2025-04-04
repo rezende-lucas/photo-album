@@ -1,8 +1,27 @@
 # Sistema de Identificação e Catalogação Tática (S.I.D.C.T.)
 
+![Status](https://img.shields.io/badge/status-ativo-brightgreen)
+![Versão](https://img.shields.io/badge/versão-1.0-blue)
+![Licença](https://img.shields.io/badge/licença-MIT-green)
+
 Um sistema web moderno para gerenciamento de registros de pessoas, com interface tática inspirada em sistemas de segurança.
 
-## Visão Geral
+## 📋 Índice
+
+- [Visão Geral](#visão-geral)
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Funcionalidades](#funcionalidades-principais)
+- [Instalação](#instalação)
+- [Configuração](#configuração-e-implantação)
+- [Customização](#customização)
+- [Melhorias Recentes](#melhorias-recentes)
+- [Solução de Problemas](#solução-de-problemas)
+- [Responsividade](#responsividade-mobile)
+- [Contribuição](#contribuição)
+- [Licença](#licença)
+
+## 🔍 Visão Geral
 
 O S.I.D.C.T. permite catalogar, visualizar, editar e excluir registros de pessoas, oferecendo:
 
@@ -13,7 +32,7 @@ O S.I.D.C.T. permite catalogar, visualizar, editar e excluir registros de pessoa
 - Visualização em grade e lista
 - Design responsivo
 
-## Tecnologias Principais
+## 🛠️ Tecnologias
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Estrutura**: Arquitetura modular com padrão IIFE e módulos ES6
@@ -21,7 +40,7 @@ O S.I.D.C.T. permite catalogar, visualizar, editar e excluir registros de pessoa
 - **Implantação**: GitHub Pages via GitHub Actions
 - **Autenticação**: Supabase Auth
 
-## Arquitetura
+## 🏗️ Arquitetura
 
 O sistema utiliza uma arquitetura modular ES6:
 
@@ -41,7 +60,7 @@ js/
     └── ui.js                  # Manipulação de elementos de interface
 ```
 
-## Funcionalidades Principais
+## ✨ Funcionalidades Principais
 
 ### Gestão de Registros
 - Cadastro de registros com múltiplas fotografias
@@ -60,7 +79,21 @@ js/
 - Fallback automático para LocalStorage quando offline
 - Sincronização quando a conexão é restabelecida
 
-## Configuração e Implantação
+## 📥 Instalação
+
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/photo-album.git
+
+# Navegue até o diretório do projeto
+cd photo-album
+
+# Abra o arquivo index.html no navegador ou use um servidor local
+# Por exemplo, com o Python:
+python -m http.server
+```
+
+## ⚙️ Configuração e Implantação
 
 ### Pré-requisitos
 - Conta no Supabase para banco de dados e autenticação
@@ -84,19 +117,19 @@ A tabela `people` no Supabase deve conter os seguintes campos:
 - `email`: Email (opcional)
 - `localPhotos`: Array de objetos contendo fotos
 
-## Customização
+## 🎨 Customização
 
 ### Tema Visual
-- Edite as variáveis CSS em `styles.css` para personalizar cores e aparência
+- Edite as variáveis CSS em `css/main.css` para personalizar cores e aparência
 - A aplicação suporta tema claro/escuro via alternância dinâmica
 
 ### Campos de Registro
 Para adicionar ou modificar campos:
 1. Atualize o HTML do formulário em `index.html`
-2. Modifique as funções de manipulação em `people.js`
-3. Atualize os templates de renderização em `render.js`
+2. Modifique as funções de manipulação em `js/modules/people.js`
+3. Atualize os templates de renderização em `js/modules/render.js`
 
-## Melhorias Recentes
+## 🚀 Melhorias Recentes
 
 - Migração para arquitetura modular ES6
 - Implementação de suporte para múltiplas fotografias
@@ -107,12 +140,13 @@ Para adicionar ou modificar campos:
   - Melhor visibilidade de textos em dispositivos móveis
   - Interface otimizada para diferentes tamanhos de tela
 
-## Solução de Problemas
+## ❓ Solução de Problemas
 
 - **Erro na conexão Supabase**: Verifique as credenciais nos segredos do GitHub
 - **Problemas no deploy**: Verificar logs nas GitHub Actions
+- **Problemas de autenticação**: Confirme se as configurações de autenticação do Supabase estão corretas
 
-## Responsividade Mobile
+## 📱 Responsividade Mobile
 
 ### Recursos Implementados
 - **Barra de pesquisa adaptativa**: Em telas pequenas, a barra de pesquisa é acessível através de um botão dedicado
@@ -120,3 +154,17 @@ Para adicionar ou modificar campos:
 - **Layout flexível**: Reorganização de elementos para melhor aproveitamento do espaço em telas pequenas
 
 A interface foi cuidadosamente projetada para funcionar em diversos tamanhos de tela, desde desktops até smartphones, garantindo uma experiência consistente e funcional para todos os usuários.
+
+## 👥 Contribuição
+
+Contribuições são bem-vindas! Para contribuir:
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Faça commit das suas alterações (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Faça push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.
