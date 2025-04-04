@@ -271,7 +271,7 @@
             }
         }
 
-        .theme-toggle {
+        .theme-toggle, .mobile-search-toggle {
             background: none;
             border: none;
             color: var(--text-secondary);
@@ -287,9 +287,13 @@
             border: 1px solid var(--glass-border);
         }
 
-        .theme-toggle:hover {
+        .theme-toggle:hover, .mobile-search-toggle:hover {
             background: var(--bg-secondary);
             color: var(--accent-primary);
+        }
+
+        .mobile-search-toggle {
+            display: none;
         }
 
         /* Main Content */
@@ -1444,7 +1448,7 @@
                 margin-left: 80px;
                 padding: 0 0.5rem;
             }
-            
+
             .photo-grid {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 1.5rem;
@@ -1456,16 +1460,16 @@
                 width: 0;
                 opacity: 0;
             }
-            
+
             .sidebar.active {
                 width: 240px;
                 opacity: 1;
             }
-            
+
             .content-area {
                 margin-left: 0;
             }
-            
+
             .menu-toggle {
                 display: block;
             }
@@ -1475,26 +1479,30 @@
             .header {
                 padding: 0 1rem;
             }
-            
+
             .brand-name {
-                display: none;
+                font-size: 1rem;
             }
-            
+
+            .brand-subtitle {
+                font-size: 0.6rem;
+            }
+
             .search-container {
                 width: 200px;
             }
-            
+
             .content-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 1rem;
             }
-            
+
             .add-btn {
                 width: 100%;
                 justify-content: center;
             }
-            
+
             .modal-img {
                 height: 300px;
             }
@@ -1502,22 +1510,50 @@
 
         @media (max-width: 576px) {
             .search-container {
+                position: fixed;
+                top: calc(var(--header-height) + 8px);
+                left: 0;
+                right: 0;
+                width: 100%;
+                padding: 10px;
+                background: var(--glass-bg);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                z-index: 89;
+                border-bottom: 1px solid var(--glass-border);
                 display: none;
+                justify-content: center;
             }
-            
+
+            .search-container.active {
+                display: flex;
+            }
+
+            .search-container .search-input {
+                width: 90%;
+            }
+
+            .mobile-search-toggle {
+                display: flex;
+            }
+
+            .main-content.search-active {
+                margin-top: calc(var(--header-height) + 60px);
+            }
+
             .view-options {
                 width: 100%;
             }
-            
+
             .view-btn {
                 flex: 1;
                 justify-content: center;
             }
-            
+
             .photo-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .modal-actions {
                 flex-direction: column;
             }
@@ -1801,11 +1837,21 @@
 
 @media (max-width: 768px) {
     .user-display-name {
-        display: none;
+        font-size: 0.8rem;
+        max-width: 80px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    
+
     .user-dropdown {
         right: -1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-display-name {
+        display: none;
     }
 }
 /* Estilos para a funcionalidade de câmera */
@@ -1917,7 +1963,7 @@
     .camera-container {
         height: 300px;
     }
-    
+
     .camera-frame {
         width: 200px;
         height: 200px;

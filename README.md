@@ -102,9 +102,21 @@ Para adicionar ou modificar campos:
 - Implementação de suporte para múltiplas fotografias
 - Adição de sistema de autenticação
 - Componente de câmera para captura de fotos
+- Aprimoramento da responsividade para dispositivos móveis
+  - Barra de pesquisa adaptativa para telas pequenas
+  - Melhor visibilidade de textos em dispositivos móveis
+  - Interface otimizada para diferentes tamanhos de tela
 
 ## Solução de Problemas
 
 - **Erro na conexão Supabase**: Verifique as credenciais nos segredos do GitHub
-- **Interface quebrada em dispositivos**: Ajustar os breakpoints em `styles.css`
 - **Problemas no deploy**: Verificar logs nas GitHub Actions
+
+## Responsividade Mobile
+
+### Recursos Implementados
+- **Barra de pesquisa adaptativa**: Em telas pequenas, a barra de pesquisa é acessível através de um botão dedicado
+- **Textos otimizados**: Ajustes de tamanho e visibilidade de textos para garantir legibilidade em qualquer dispositivo
+- **Layout flexível**: Reorganização de elementos para melhor aproveitamento do espaço em telas pequenas
+
+A interface foi cuidadosamente projetada para funcionar em diversos tamanhos de tela, desde desktops até smartphones, garantindo uma experiência consistente e funcional para todos os usuários.
